@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "usertinygps.h": "c",
+        "softuart.h": "c",
+        "user_ble.h": "c",
+        "json_bluetooth.h": "c"
+    }
+}
