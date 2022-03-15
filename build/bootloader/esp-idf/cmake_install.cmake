@@ -1,4 +1,4 @@
-# Install script for directory: D:/2.Work/esp32/esp-idf
+# Install script for directory: D:/1.Work/1.ESP32/esp-idf
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,20 +34,20 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/esp32/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/soc/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/xtensa/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/esp_common/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/esp_rom/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/log/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/partition_table/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/bootloader/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/micro-ecc/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/spi_flash/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/efuse/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/bootloader_support/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/esptool_py/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/bootloader/esp-idf/main/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/esp32/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/soc/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/xtensa/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/esp_common/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/esp_rom/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/log/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/partition_table/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/bootloader/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/micro-ecc/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/spi_flash/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/efuse/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/bootloader_support/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/esptool_py/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/bootloader/esp-idf/main/cmake_install.cmake")
 
 endif()
 

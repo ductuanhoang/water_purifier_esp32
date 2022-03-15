@@ -57,7 +57,7 @@ void json_bluetooth_packet(char *message_packet, const char *token, bool state, 
     // subroot = cJSON_AddObjectToObject(root, "currentSensorStateData");
     cJSON_AddStringToObject(root, "token", token);
     cJSON_AddBoolToObject(root, "config", state);
-    cJSON_AddBoolToObject(root, "clientid", clientid);
+    cJSON_AddStringToObject(root, "clientid", clientid);
 
     // APP_LOGD("message = %s", cJSON_PrintUnformatted(root));
 

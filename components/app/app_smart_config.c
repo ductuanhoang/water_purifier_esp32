@@ -33,23 +33,28 @@
 /***********************************************************************************************************************
  * Macro definitions
  ***********************************************************************************************************************/
-const char* TAG = "app_config";
+const char *TAG = "app_config";
 /***********************************************************************************************************************
  * Typedef definitions
  ***********************************************************************************************************************/
-typedef struct 
+typedef struct
 {
-   char ssid[32];
-   char pwd[64];
-}app_config_t;
+    char ssid[32];
+    char pwd[64];
+} app_config_t;
 
 /***********************************************************************************************************************
  * Private global variables and functions
  ***********************************************************************************************************************/
 static void ble_recv_cb(char *buf, int len);
 static void ble_read_cb(void);
+static uint32_t gen_random_token(void);
+static void app_smartconfig_get_mac_name(char *mac_name, size_t max);
 
 static app_config_t app_config = {0};
+static char TOKEN[5];
+static uint8_t MAC_BLE[6];
+static char DEVICE_NAME[30];
 /***********************************************************************************************************************
  * Exported global variables and functions (to be accessed by other files)
  ***********************************************************************************************************************/
@@ -67,7 +72,11 @@ void app_smart_config_init(void)
     ble_server_set_write_callback(ble_recv_cb);
     ble_server_set_read_callback(ble_read_cb);
     ble_server_start();
-    // create new task 
+    uint32_t rand = gen_random_token();
+    sprintf(TOKEN, "%04d", rand);
+    ESP_LOGW(TAG, "Gen Token: %s", TOKEN);
+    app_smartconfig_get_mac_name(DEVICE_NAME, 30);
+    // create new task
 }
 
 /***********************************************************************************************************************
@@ -159,11 +168,22 @@ static void ble_recv_cb(char *buf, int len)
  */
 static void ble_read_cb(void)
 {
-    // char *sp = "tuanhd1234";
-    ble_server_send_response_data(sp, strlen(sp));
-    uint32_t token = gen_random_token();
-    char message_packet[255]
-    json_bluetooth_packet(char *message_packet, const char *token, bool state, const char *clientid)
+    char message_packet[255];
+    json_bluetooth_packet(&message_packet, TOKEN, true, (const char *)DEVICE_NAME);
+    ESP_LOGI(TAG, "message_packet = %s", message_packet);
+    ble_server_send_response_data(message_packet, strlen(message_packet));
+}
+
+/**
+ * @brief 
+ * 
+ * @param mac_name 
+ * @param max 
+ */
+static void app_smartconfig_get_mac_name(char *mac_name, size_t max)
+{
+    ESP_ERROR_CHECK(esp_read_mac(MAC_BLE, ESP_MAC_BT));
+    snprintf(mac_name, max, "%02X%02X%02X%02X%02X%02X", MAC_BLE[0], MAC_BLE[1], MAC_BLE[2], MAC_BLE[3], MAC_BLE[4], MAC_BLE[5]);
 }
 
 /***********************************************************************************************************************

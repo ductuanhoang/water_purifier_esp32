@@ -1,4 +1,4 @@
-/* * Data converted from D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded
