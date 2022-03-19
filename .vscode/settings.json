@@ -5,6 +5,7 @@
         "user_ble.h": "c",
         "json_bluetooth.h": "c",
         "app_smart_config.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "user_uart.h": "c"
     }
 }

@@ -1,57 +1,140 @@
-/**
- * @file user_uart.c
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-03-18
- *
- * @copyright Copyright (c) 2022
- *
- */
+/* UART Events Example
+   This example code is in the Public Domain (or CC0 licensed, at your option.)
+   Unless required by applicable law or agreed to in writing, this
+   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+   CONDITIONS OF ANY KIND, either express or implied.
+*/
+#include "user_uart.h"
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "driver/uart.h"
-#include "esp_log.h"
 #include "driver/gpio.h"
-#include "sdkconfig.h"
-#include "esp_intr_alloc.h"
+#include "esp_log.h"
 
-static const char *TAG = "uart_events";
 
-/*
- * Define UART interrupt subroutine to ackowledge interrupt
+static const char *TAG = "user_uart";
+
+
+static uart_write_callback_t uart_write_callback = NULL;
+static uart_read_callback_t uart_read_callback = NULL;
+/**
+ * This example shows how to use the UART driver to handle special UART events.
+ *
+ * It also reads data from UART0 directly, and echoes it to console.
+ *
+ * - Port: UART0
+ * - Receive (Rx) buffer: on
+ * - Transmit (Tx) buffer: off
+ * - Flow control: off
+ * - Event queue: on
+ * - Pin assignment: TxD (default), RxD (default)
  */
-static void IRAM_ATTR uart_intr_handle(void *arg)
+
+#define EX_UART_NUM UART_NUM_2
+#define UART_QUEUE_NUM uart2_queue
+
+#define PATTERN_CHR_NUM (3) /*!< Set the number of consecutive and identical characters received by receiver which defines a UART pattern*/
+
+#define BUF_SIZE (1024)
+#define RD_BUF_SIZE (BUF_SIZE)
+static QueueHandle_t UART_QUEUE_NUM;
+
+static void uart_event_task(void *pvParameters)
 {
-    uint16_t rx_fifo_len, status;
-    uint16_t i;
-
-    status = UART0.int_st.val;             // read UART interrupt Status
-    rx_fifo_len = UART0.status.rxfifo_cnt; // read number of bytes in UART buffer
-
-    while (rx_fifo_len)
+    uart_event_t event;
+    size_t buffered_size;
+    uint8_t *dtmp = (uint8_t *)malloc(RD_BUF_SIZE);
+    ESP_LOGI(TAG, "uart_event_task call");
+    for (;;)
     {
-        rxbuf[i++] = UART0.fifo.rw_byte; // read all bytes
-        rx_fifo_len--;
+        // Waiting for UART event.
+        if (xQueueReceive(UART_QUEUE_NUM, (void *)&event, (TickType_t)portMAX_DELAY))
+        {
+            bzero(dtmp, RD_BUF_SIZE);
+            ESP_LOGI(TAG, "uart[%d] event:", EX_UART_NUM);
+            switch (event.type)
+            {
+            // Event of UART receving data
+            /*We'd better handler data event fast, there would be much more data events than
+            other types of events. If we take too much time on data event, the queue might
+            be full.*/
+            case UART_DATA:
+                ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
+                uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
+                ESP_LOGI(TAG, "[DATA EVT]:");
+                // uart_write_bytes(EX_UART_NUM, (const char *)dtmp, event.size);
+                uart_read_callback(dtmp, event.size);
+                break;
+            // Event of HW FIFO overflow detected
+            case UART_FIFO_OVF:
+                ESP_LOGI(TAG, "hw fifo overflow");
+                // If fifo overflow happened, you should consider adding flow control for your application.
+                // The ISR has already reset the rx FIFO,
+                // As an example, we directly flush the rx buffer here in order to read more data.
+                uart_flush_input(EX_UART_NUM);
+                xQueueReset(UART_QUEUE_NUM);
+                break;
+            // Event of UART ring buffer full
+            case UART_BUFFER_FULL:
+                ESP_LOGI(TAG, "ring buffer full");
+                // If buffer full happened, you should consider encreasing your buffer size
+                // As an example, we directly flush the rx buffer here in order to read more data.
+                uart_flush_input(EX_UART_NUM);
+                xQueueReset(UART_QUEUE_NUM);
+                break;
+            // Event of UART RX break detected
+            case UART_BREAK:
+                ESP_LOGI(TAG, "uart rx break");
+                break;
+            // Event of UART parity check error
+            case UART_PARITY_ERR:
+                ESP_LOGI(TAG, "uart parity error");
+                break;
+            // Event of UART frame error
+            case UART_FRAME_ERR:
+                ESP_LOGI(TAG, "uart frame error");
+                break;
+            // UART_PATTERN_DET
+            case UART_PATTERN_DET:
+                uart_get_buffered_data_len(EX_UART_NUM, &buffered_size);
+                int pos = uart_pattern_pop_pos(EX_UART_NUM);
+                ESP_LOGI(TAG, "[UART PATTERN DETECTED] pos: %d, buffered size: %d", pos, buffered_size);
+                if (pos == -1)
+                {
+                    // There used to be a UART_PATTERN_DET event, but the pattern position queue is full so that it can not
+                    // record the position. We should set a larger queue size.
+                    // As an example, we directly flush the rx buffer here.
+                    uart_flush_input(EX_UART_NUM);
+                }
+                else
+                {
+                    uart_read_bytes(EX_UART_NUM, dtmp, pos, 100 / portTICK_PERIOD_MS);
+                    uint8_t pat[PATTERN_CHR_NUM + 1];
+                    memset(pat, 0, sizeof(pat));
+                    uart_read_bytes(EX_UART_NUM, pat, PATTERN_CHR_NUM, 100 / portTICK_PERIOD_MS);
+                    ESP_LOGI(TAG, "read data: %s", dtmp);
+                    ESP_LOGI(TAG, "read pat : %s", pat);
+                }
+                break;
+            // Others
+            default:
+                ESP_LOGI(TAG, "uart event type: %d", event.type);
+                break;
+            }
+        }
     }
-
-    // after reading bytes from buffer clear UART interrupt status
-    uart_clear_intr_status(EX_UART_NUM, UART_RXFIFO_FULL_INT_CLR | UART_RXFIFO_TOUT_INT_CLR);
-
-    // a test code or debug code to indicate UART receives successfully,
-    // you can redirect received byte as echo also
-    uart_write_bytes(EX_UART_NUM, (const char *)"RX Done", 7);
+    free(dtmp);
+    dtmp = NULL;
+    vTaskDelete(NULL);
 }
 
-/**
- * @brief 
- * 
- */
 void user_uart_init(void)
 {
+    esp_log_level_set(TAG, ESP_LOG_INFO);
+
     /* Configure parameters of an UART driver,
      * communication pins and install the driver */
     uart_config_t uart_config = {
@@ -59,36 +142,42 @@ void user_uart_init(void)
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE};
-
-    ESP_ERROR_CHECK(uart_param_config(EX_UART_NUM, &uart_config));
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .source_clk = UART_SCLK_APB,
+    };
+    // Install UART driver, and get the queue.
+    uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 20, &UART_QUEUE_NUM, 0);
+    uart_param_config(EX_UART_NUM, &uart_config);
 
     // Set UART log level
     esp_log_level_set(TAG, ESP_LOG_INFO);
-
     // Set UART pins (using UART0 default pins ie no changes.)
-    ESP_ERROR_CHECK(uart_set_pin(EX_UART_NUM, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    // uart_set_pin(EX_UART_NUM, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    uart_set_pin(UART_NUM_2, GPIO_NUM_17, GPIO_NUM_16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
-    // Install UART driver, and get the queue.
-    ESP_ERROR_CHECK(uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
+    // Set uart pattern detect function.
+    uart_enable_pattern_det_baud_intr(EX_UART_NUM, '+', PATTERN_CHR_NUM, 9, 0, 0);
+    // Reset the pattern queue length to record at most 20 pattern positions.
+    uart_pattern_queue_reset(EX_UART_NUM, 20);
 
-    // release the pre registered UART handler/subroutine
-    ESP_ERROR_CHECK(uart_isr_free(EX_UART_NUM));
-
-    // register new UART subroutine
-    ESP_ERROR_CHECK(uart_isr_register(EX_UART_NUM, uart_intr_handle, NULL, ESP_INTR_FLAG_IRAM, &handle_console));
-
-    // enable RX interrupt
-    ESP_ERROR_CHECK(uart_enable_rx_intr(EX_UART_NUM));
+    // Create a task to handler UART event from ISR
+    xTaskCreate(uart_event_task, "uart_event_task", 2048, NULL, 12, NULL);
 }
 
-/**
- * @brief 
- * 
- * @param data 
- * @param len 
- */
-void user_uart_send_bytes(uint8_t data, uint8_t len)
+void uart_recieve_callback_init(uart_read_callback_t *callback)
 {
+    if (callback)
+    {
+        uart_read_callback = callback;
+    }
+    else
+    {
+        ESP_LOGE(TAG, "uart_recieve_callback register error");
+        return;
+    }
+}
 
+void uart_send_callback(uint8_t *data, uint8_t length)
+{
+    uart_write_bytes(EX_UART_NUM, (const char *)data, length);
 }

@@ -633,6 +633,13 @@ D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/edit_
 D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/rebuild_cache.dir
 D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/list_install_components.dir
 D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/install/strip.dir
+D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/__idf_UserUART.dir
+D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/install/local.dir
+D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/install.dir
+D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/edit_cache.dir
+D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/rebuild_cache.dir
+D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/list_install_components.dir
+D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/install/strip.dir
 D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/app/CMakeFiles/__idf_app.dir
 D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/app/CMakeFiles/install/local.dir
 D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/app/CMakeFiles/install.dir

@@ -70,4 +70,5 @@ $<TARGET_FILE:__idf_main>
 $<TARGET_FILE:__idf_SoftUART>
 $<TARGET_FILE:__idf_UserBle>
 $<TARGET_FILE:__idf_UserJson>
+$<TARGET_FILE:__idf_UserUART>
 $<TARGET_FILE:__idf_app>

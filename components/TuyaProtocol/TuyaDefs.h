@@ -65,7 +65,22 @@
 #define LENGTH_HIGH         4
 #define LENGTH_LOW          5
 #define DATA_START          6
-
+//=============================================================================
+//command indx  type
+//=============================================================================
+#define         COMMAND_HEART_BEAT                        0x00	//Detect the heartbeat
+#define         COMMAND_QUERY_INFO                        0x01	//Query product information
+#define         COMMAND_                        0x02	//Query working mode of the module
+#define         COMMAND_                        0x03	//Report the network status of the device
+#define         COMMAND_                        0x04	//Reset Wi-Fi
+#define         COMMAND_                        0x05	//Reset Wi-Fi and switch network pairing mode
+#define         COMMAND_                        0x06	//Send the DP commands
+#define         COMMAND_                        0x07	//Report the DP status
+#define         COMMAND_                        0x08	//Query the status
+#define         COMMAND_                        0x0a	//Start OTA updates (optional)
+#define         COMMAND_                        0x0b	//Transfer OTA update package (optional)
+#define         COMMAND_                        0x1c	//Get the local time (optional)
+#define         COMMAND_                        0x0e	//Test the Wi-Fi function
 //=============================================================================
 //Data frame type
 //=============================================================================

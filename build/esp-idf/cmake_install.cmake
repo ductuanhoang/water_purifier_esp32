@@ -112,6 +112,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/SoftUART/cmake_install.cmake")
   include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserBle/cmake_install.cmake")
   include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserJson/cmake_install.cmake")
+  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/UserUART/cmake_install.cmake")
   include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/app/cmake_install.cmake")
 
 endif()
