@@ -1,4 +1,4 @@
-# Install script for directory: D:/2.Work/esp32/esp-idf/components/bootloader/subproject/main
+# Install script for directory: D:/1.Work/1.ESP32/esp-idf/components/bootloader/subproject/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -36,7 +36,7 @@ unsigned long TuyaDataPoint::mcu_get_dp_download_value(const unsigned char value
 char * TuyaDataPoint::mcu_get_dp_download_string(const unsigned char value[], unsigned short len)
 {
     char dest[30];
-    return(tuya_tools.my_strcpy(dest, value));
+    return(tuya_tools.my_strcpy(dest, (const char*)value));
 }
 
 unsigned char TuyaDataPoint::mcu_dp_raw_update(unsigned char dpid, const unsigned char value[], unsigned short len)

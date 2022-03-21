@@ -1,4 +1,4 @@
-# Install script for directory: D:/2.Work/esp32/esp-idf/components/mbedtls/mbedtls
+# Install script for directory: D:/1.Work/1.ESP32/esp-idf/components/mbedtls/mbedtls
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,8 +34,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
-  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
 
 endif()
 

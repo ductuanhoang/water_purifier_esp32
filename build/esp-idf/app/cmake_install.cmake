@@ -1,4 +1,4 @@
-# Install script for directory: D:/2.Work/2.Tuanhd2/water_purifier_esp32/components/app
+# Install script for directory: D:/1.Work/40.UKG/water_purifier_esp32/components/app
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
