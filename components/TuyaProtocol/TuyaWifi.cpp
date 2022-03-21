@@ -1,46 +1,44 @@
 /**
  * @file TuyaWifi.cpp
  * @author tuanhd1 (you@domain.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-19
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
+/***********************************************************************************************************************
+ * Pragma directive
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* Pragma directive
-***********************************************************************************************************************/
-
-/***********************************************************************************************************************
-* Includes <System Includes>
-***********************************************************************************************************************/
+ * Includes <System Includes>
+ ***********************************************************************************************************************/
 #include "TuyaWifi.h"
 #include "TuyaUart.h"
 #include "TuyaTools.h"
 
 /***********************************************************************************************************************
-* Macro definitions
-***********************************************************************************************************************/
+ * Macro definitions
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* Typedef definitions
-***********************************************************************************************************************/
+ * Typedef definitions
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* Private global variables and functions
-***********************************************************************************************************************/
+ * Private global variables and functions
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* Exported global variables and functions (to be accessed by other files)
-***********************************************************************************************************************/
+ * Exported global variables and functions (to be accessed by other files)
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* Imported global variables and functions (from other files)
-***********************************************************************************************************************/
-#define TUYA_GLOBAL
+ * Imported global variables and functions (from other files)
+ ***********************************************************************************************************************/
 #include <TuyaWifi.h>
 #include "TuyaTools.h"
 #include "TuyaDataPoint.h"
@@ -54,7 +52,7 @@ TuyaDataPoint tuya_dp;
 
 /* Constants required to report product information */
 /* Here "key" means key-value */
-const unsigned char pid_key[] = {"{\"p\":\""}; 
+const unsigned char pid_key[] = {"{\"p\":\""};
 const unsigned char mcu_ver_key[] = {"\",\"v\":\""};
 const unsigned char mode_key[] = {"\",\"m\":"};
 const unsigned char product_info_end[] = {"}"};
@@ -120,9 +118,11 @@ void TuyaWifi::uart_service(void)
     unsigned short rx_value_len = 0;
 
     /* extract serial data */
-    while(tuya_uart.available()) {
+    while (tuya_uart.available())
+    {
         ret = tuya_uart.uart_receive_input(tuya_uart.read());
-        if (ret != TY_SUCCESS) {
+        if (ret != TY_SUCCESS)
+        {
             break;
         }
     }
@@ -168,24 +168,23 @@ void TuyaWifi::uart_service(void)
             break;
         }
 
-        //data receive finish
+        // data receive finish
         if (tuya_tools.get_check_sum((unsigned char *)tuya_uart.wifi_data_process_buf + offset, rx_value_len - 1) != tuya_uart.wifi_data_process_buf[offset + rx_value_len - 1])
         {
-            //check error
+            // check error
             offset += 3;
             continue;
         }
 
         data_handle(offset);
         offset += rx_value_len;
-    } //end while
+    } // end while
 
     rx_in -= offset;
     if (rx_in > 0)
     {
         tuya_tools.my_memcpy((char *)tuya_uart.wifi_data_process_buf, (const char *)tuya_uart.wifi_data_process_buf + offset, rx_in);
     }
-
 }
 
 /**
@@ -197,11 +196,11 @@ void TuyaWifi::data_handle(unsigned short offset)
 {
 #ifdef SUPPORT_MCU_FIRM_UPDATE
     unsigned char *firmware_addr = NULL;
-    static unsigned short firm_size;           //Upgrade package size
-    static unsigned long firm_length;          //MCU upgrade file length
-    static unsigned char firm_update_flag = 0; //MCU upgrade flag
+    static unsigned short firm_size;           // Upgrade package size
+    static unsigned long firm_length;          // MCU upgrade file length
+    static unsigned char firm_update_flag = 0; // MCU upgrade flag
     unsigned long dp_len;
-    unsigned char firm_flag; //Upgrade package size flag
+    unsigned char firm_flag; // Upgrade package size flag
 #else
     unsigned short dp_len;
 #endif
@@ -209,15 +208,15 @@ void TuyaWifi::data_handle(unsigned short offset)
     unsigned char ret;
     unsigned short i, total_len;
     unsigned char cmd_type = tuya_uart.wifi_data_process_buf[offset + FRAME_TYPE];
-    
-#if ((defined VOICE_MODULE_PROTOCOL_ENABLE) || (defined BLE_RELATED_FUNCTION_ENABLE) || (defined MODULE_EXPANDING_SERVICE_ENABLE) || \
-    (defined IR_TX_RX_TEST_ENABLE) || (defined GET_IR_STATUS_ENABLE) || (defined MCU_DP_UPLOAD_SYN) || (defined GET_WIFI_STATUS_ENABLE) || \
-    (defined WIFI_CONNECT_TEST_ENABLE) || (defined WIFI_STREAM_ENABLE) || (defined WIFI_TEST_ENABLE))
+
+#if ((defined VOICE_MODULE_PROTOCOL_ENABLE) || (defined BLE_RELATED_FUNCTION_ENABLE) || (defined MODULE_EXPANDING_SERVICE_ENABLE) ||        \
+     (defined IR_TX_RX_TEST_ENABLE) || (defined GET_IR_STATUS_ENABLE) || (defined MCU_DP_UPLOAD_SYN) || (defined GET_WIFI_STATUS_ENABLE) || \
+     (defined WIFI_CONNECT_TEST_ENABLE) || (defined WIFI_STREAM_ENABLE) || (defined WIFI_TEST_ENABLE))
     unsigned char result;
 #endif
 
 #ifdef WEATHER_ENABLE
-    static unsigned char isWoSend = 0; //Whether the weather data has been opened, 0:no  1:yes
+    static unsigned char isWoSend = 0; // Whether the weather data has been opened, 0:no  1:yes
 #endif
 
 #ifdef WIFI_TEST_ENABLE
@@ -226,50 +225,50 @@ void TuyaWifi::data_handle(unsigned short offset)
 
 #ifdef FILE_DOWNLOAD_ENABLE
     unsigned char *file_data_addr = NULL;
-    static unsigned short file_package_size = 0; //File packet size
-    static unsigned char file_download_flag = 0; //File download flag
+    static unsigned short file_package_size = 0; // File packet size
+    static unsigned char file_download_flag = 0; // File download flag
     unsigned int file_download_size = 0;
 #endif
 
     switch (cmd_type)
     {
-    case HEAT_BEAT_CMD: //Heartbeat package
+    case HEAT_BEAT_CMD: // Heartbeat package
         heat_beat_check();
         break;
 
-    case PRODUCT_INFO_CMD: //Product information
+    case PRODUCT_INFO_CMD: // Product information
         product_info_update();
         break;
 
-    case WORK_MODE_CMD: //Query the module working mode set by the MCU
+    case WORK_MODE_CMD: // Query the module working mode set by the MCU
         get_mcu_wifi_mode();
         break;
 
 #if WIFI_CONTROL_SELF_MODE
-    /* nothing to do here */
+        /* nothing to do here */
 #else
-    case WIFI_STATE_CMD: //Wifi working status
+    case WIFI_STATE_CMD: // Wifi working status
         wifi_work_state = tuya_uart.wifi_data_process_buf[offset + DATA_START];
         tuya_uart.wifi_uart_write_frame(WIFI_STATE_CMD, MCU_TX_VER, 0);
 #ifdef WEATHER_ENABLE
-        if (wifi_work_state == WIFI_CONNECTED && isWoSend == 0) //When the WIFI connection is successful, open the weather data only once
-        { 
+        if (wifi_work_state == WIFI_CONNECTED && isWoSend == 0) // When the WIFI connection is successful, open the weather data only once
+        {
             mcu_open_weather();
             isWoSend = 1;
         }
 #endif
         break;
 
-    case WIFI_RESET_CMD: //Reset wifi
+    case WIFI_RESET_CMD: // Reset wifi
         reset_wifi_flag = RESET_WIFI_SUCCESS;
         break;
 
-    case WIFI_MODE_CMD: //Select smartconfig/AP mode
+    case WIFI_MODE_CMD: // Select smartconfig/AP mode
         set_wifimode_flag = SET_WIFICONFIG_SUCCESS;
         break;
 #endif
 
-    case DATA_QUERT_CMD: //Order send
+    case DATA_QUERT_CMD: // Order send
         total_len = (tuya_uart.wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | tuya_uart.wifi_data_process_buf[offset + LENGTH_LOW];
 
         for (i = 0; i < total_len;)
@@ -281,24 +280,24 @@ void TuyaWifi::data_handle(unsigned short offset)
 
             if (TY_SUCCESS == ret)
             {
-                //Send success
+                // Send success
             }
             else
             {
-                //Send fault
+                // Send fault
             }
 
             i += (dp_len + 4);
         }
         break;
 
-    case STATE_QUERY_CMD: //Status query
+    case STATE_QUERY_CMD: // Status query
         all_data_update();
         break;
 
 #ifdef SUPPORT_MCU_FIRM_UPDATE
-    case UPDATE_START_CMD: //Upgrade start
-        //Get global variable of upgrade package size
+    case UPDATE_START_CMD: // Upgrade start
+        // Get global variable of upgrade package size
         firm_flag = PACKAGE_SIZE;
         if (firm_flag == 0)
         {
@@ -325,10 +324,10 @@ void TuyaWifi::data_handle(unsigned short offset)
         firm_update_flag = UPDATE_START_CMD;
         break;
 
-    case UPDATE_TRANS_CMD: //Upgrade transfer
+    case UPDATE_TRANS_CMD: // Upgrade transfer
         if (firm_update_flag == UPDATE_START_CMD)
         {
-            //Stop all data reporting
+            // Stop all data reporting
             stop_update_flag = TY_ENABLE;
 
             total_len = (wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | wifi_data_process_buf[offset + LENGTH_LOW];
@@ -346,7 +345,7 @@ void TuyaWifi::data_handle(unsigned short offset)
 
             if ((total_len == 4) && (dp_len == firm_length))
             {
-                //Last pack
+                // Last pack
                 ret = mcu_firm_update_handle(firmware_addr, dp_len, 0);
                 firm_update_flag = 0;
             }
@@ -364,26 +363,26 @@ void TuyaWifi::data_handle(unsigned short offset)
             {
                 wifi_uart_write_frame(UPDATE_TRANS_CMD, MCU_TX_VER, 0);
             }
-            //Restore all data reported
+            // Restore all data reported
             stop_update_flag = TY_DISABLE;
         }
         break;
 #endif
 
 #if SUPPORT_GREEN_TIME
-    case GET_ONLINE_TIME_CMD: //Get system time (Greenwich Mean Time)
+    case GET_ONLINE_TIME_CMD: // Get system time (Greenwich Mean Time)
         tuya_extras.mcu_get_green_time((unsigned char *)(tuya_uart.wifi_data_process_buf + offset + DATA_START), &_green_time);
         break;
 #endif
 
 #if SUPPORT_RTC_TIME
-    case GET_LOCAL_TIME_CMD: //Get local time
+    case GET_LOCAL_TIME_CMD: // Get local time
         tuya_extras.mcu_get_rtc_time((unsigned char *)(tuya_uart.wifi_data_process_buf + offset + DATA_START), &_rtc_time);
         break;
 #endif
 
 #ifdef WIFI_TEST_ENABLE
-    case WIFI_TEST_CMD: //Wifi function test
+    case WIFI_TEST_CMD: // Wifi function test
         result = wifi_data_process_buf[offset + DATA_START];
         rssi = wifi_data_process_buf[offset + DATA_START + 1];
         wifi_test_result(result, rssi);
@@ -391,72 +390,72 @@ void TuyaWifi::data_handle(unsigned short offset)
 #endif
 
 #ifdef WEATHER_ENABLE
-    case WEATHER_OPEN_CMD: //Turn on the weather
+    case WEATHER_OPEN_CMD: // Turn on the weather
         weather_open_return_handle(wifi_data_process_buf[offset + DATA_START], wifi_data_process_buf[offset + DATA_START + 1]);
         break;
 
-    case WEATHER_DATA_CMD: //Weather data
+    case WEATHER_DATA_CMD: // Weather data
         total_len = (wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | wifi_data_process_buf[offset + LENGTH_LOW];
         weather_data_raw_handle((unsigned char *)wifi_data_process_buf + offset + DATA_START, total_len);
         break;
 #endif
 
 #ifdef WIFI_STREAM_ENABLE
-    case STREAM_TRANS_CMD:                                          //Stream data transmission
-        stream_status = wifi_data_process_buf[offset + DATA_START]; //Service transmission back to reception
+    case STREAM_TRANS_CMD:                                          // Stream data transmission
+        stream_status = wifi_data_process_buf[offset + DATA_START]; // Service transmission back to reception
         stream_trans_send_result(stream_status);
         break;
 
-    case MAPS_STREAM_TRANS_CMD:                                          //streams trans(Support for multiple maps)
-        maps_stream_status = wifi_data_process_buf[offset + DATA_START]; //Service transmission back to reception
+    case MAPS_STREAM_TRANS_CMD:                                          // streams trans(Support for multiple maps)
+        maps_stream_status = wifi_data_process_buf[offset + DATA_START]; // Service transmission back to reception
         maps_stream_trans_send_result(maps_stream_status);
         break;
 #endif
 
 #ifdef WIFI_CONNECT_TEST_ENABLE
-    case WIFI_CONNECT_TEST_CMD: //Wifi function test(connection designated route)
+    case WIFI_CONNECT_TEST_CMD: // Wifi function test(connection designated route)
         result = wifi_data_process_buf[offset + DATA_START];
         wifi_connect_test_result(result);
         break;
 #endif
 
 #ifdef GET_MODULE_MAC_ENABLE
-    case GET_MAC_CMD: //Get module mac
+    case GET_MAC_CMD: // Get module mac
         mcu_get_mac((unsigned char *)(wifi_data_process_buf + offset + DATA_START));
         break;
 #endif
 
 #ifdef GET_WIFI_STATUS_ENABLE
-    case GET_WIFI_STATUS_CMD: //Gets the wifi networking status
+    case GET_WIFI_STATUS_CMD: // Gets the wifi networking status
         result = wifi_data_process_buf[offset + DATA_START];
         get_wifi_status(result);
         break;
 #endif
 
 #ifdef MCU_DP_UPLOAD_SYN
-    case STATE_UPLOAD_SYN_RECV_CMD: //Status upload results(synchronization)
+    case STATE_UPLOAD_SYN_RECV_CMD: // Status upload results(synchronization)
         result = wifi_data_process_buf[offset + DATA_START];
         get_upload_syn_result(result);
         break;
 #endif
 
 #ifdef GET_IR_STATUS_ENABLE
-    case GET_IR_STATUS_CMD: //IR status notification
+    case GET_IR_STATUS_CMD: // IR status notification
         result = wifi_data_process_buf[offset + DATA_START];
         get_ir_status(result);
         break;
 #endif
 
 #ifdef IR_TX_RX_TEST_ENABLE
-    case IR_TX_RX_TEST_CMD: //IR into send-receive test
+    case IR_TX_RX_TEST_CMD: // IR into send-receive test
         result = wifi_data_process_buf[offset + DATA_START];
         ir_tx_rx_test_result(result);
         break;
 #endif
 
 #ifdef FILE_DOWNLOAD_ENABLE
-    case FILE_DOWNLOAD_START_CMD: //File download startup
-        //Get file package size selection
+    case FILE_DOWNLOAD_START_CMD: // File download startup
+        // Get file package size selection
         if (FILE_DOWNLOAD_PACKAGE_SIZE == 0)
         {
             file_package_size = 256;
@@ -479,7 +478,7 @@ void TuyaWifi::data_handle(unsigned short offset)
         file_download_flag = FILE_DOWNLOAD_START_CMD;
         break;
 
-    case FILE_DOWNLOAD_TRANS_CMD: //File download data transfer
+    case FILE_DOWNLOAD_TRANS_CMD: // File download data transfer
         if (file_download_flag == FILE_DOWNLOAD_START_CMD)
         {
             total_len = (wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | wifi_data_process_buf[offset + LENGTH_LOW];
@@ -497,7 +496,7 @@ void TuyaWifi::data_handle(unsigned short offset)
 
             if ((total_len == 4) && (dp_len == file_download_size))
             {
-                //Last pack
+                // Last pack
                 ret = file_download_handle(file_data_addr, dp_len, 0);
                 file_download_flag = 0;
             }
@@ -520,41 +519,41 @@ void TuyaWifi::data_handle(unsigned short offset)
 #endif
 
 #ifdef MODULE_EXPANDING_SERVICE_ENABLE
-    case MODULE_EXTEND_FUN_CMD: //Module expansion service
+    case MODULE_EXTEND_FUN_CMD: // Module expansion service
         total_len = (wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | wifi_data_process_buf[offset + LENGTH_LOW];
         open_module_time_serve_result((unsigned char *)(wifi_data_process_buf + offset + DATA_START), total_len);
         break;
 #endif
 
 #ifdef BLE_RELATED_FUNCTION_ENABLE
-    case BLE_TEST_CMD: //Bluetooth functional test（Scan designated bluetooth beacon）
+    case BLE_TEST_CMD: // Bluetooth functional test（Scan designated bluetooth beacon）
         total_len = (wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | wifi_data_process_buf[offset + LENGTH_LOW];
         BLE_test_result((unsigned char *)(wifi_data_process_buf + offset + DATA_START), total_len);
         break;
 #endif
 
 #ifdef VOICE_MODULE_PROTOCOL_ENABLE
-    case GET_VOICE_STATE_CMD: //Gets the voice status code
+    case GET_VOICE_STATE_CMD: // Gets the voice status code
         result = wifi_data_process_buf[offset + DATA_START];
         get_voice_state_result(result);
         break;
-    case MIC_SILENCE_CMD: //MIC mute Settings
+    case MIC_SILENCE_CMD: // MIC mute Settings
         result = wifi_data_process_buf[offset + DATA_START];
         set_voice_MIC_silence_result(result);
         break;
-    case SET_SPEAKER_VOLUME_CMD: //speaker volume set
+    case SET_SPEAKER_VOLUME_CMD: // speaker volume set
         result = wifi_data_process_buf[offset + DATA_START];
         set_speaker_voice_result(result);
         break;
-    case VOICE_TEST_CMD: //Audio production test
+    case VOICE_TEST_CMD: // Audio production test
         result = wifi_data_process_buf[offset + DATA_START];
         voice_test_result(result);
         break;
-    case VOICE_AWAKEN_TEST_CMD: //Wake up production test
+    case VOICE_AWAKEN_TEST_CMD: // Wake up production test
         result = wifi_data_process_buf[offset + DATA_START];
         voice_awaken_test_result(result);
         break;
-    case VOICE_EXTEND_FUN_CMD: //Voice module extension function
+    case VOICE_EXTEND_FUN_CMD: // Voice module extension function
         total_len = (wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | wifi_data_process_buf[offset + LENGTH_LOW];
         voice_module_extend_fun((unsigned char *)(wifi_data_process_buf + offset + DATA_START), total_len);
         break;
@@ -565,10 +564,9 @@ void TuyaWifi::data_handle(unsigned short offset)
     }
 }
 
-
 /**
  * @description: Input product All DP ID, Type, total number of DPs
- * @param {unsigned char} dp_cmd_array : DP array. array[][0] : DP ID, 
+ * @param {unsigned char} dp_cmd_array : DP array. array[][0] : DP ID,
  *                                                 array[][1] : DP Type(DP_TYPE_RAW, DP_TYPE_BOOL, DP_TYPE_VALUE, DP_TYPE_STRING, DP_TYPE_ENUM, DP_TYPE_BITMAP)
  * @param {unsigned char} dp_cmd_num : total number of DPs
  * @return {*}
@@ -619,7 +617,7 @@ unsigned char TuyaWifi::data_point_handle(const unsigned char value[])
 
     if (dp_type != download_cmd[index][1])
     {
-        //Error message
+        // Error message
         return TY_FALSE;
     }
     else
@@ -686,11 +684,11 @@ void TuyaWifi::product_info_update(void)
     unsigned char str[10] = {0};
 #endif
 
-    length = tuya_uart.set_wifi_uart_buffer(length, pid_key, (unsigned short)(tuya_tools.my_strlen(pid_key)));
+    length = tuya_uart.set_wifi_uart_buffer(length, pid_key, (unsigned short)(tuya_tools.my_strlen((unsigned char *)pid_key)));
     length = tuya_uart.set_wifi_uart_buffer(length, product_id, PID_LEN);
-    length = tuya_uart.set_wifi_uart_buffer(length, mcu_ver_key, (unsigned short)(tuya_tools.my_strlen(mcu_ver_key)));
+    length = tuya_uart.set_wifi_uart_buffer(length, mcu_ver_key, (unsigned short)(tuya_tools.my_strlen((unsigned char *)mcu_ver_key)));
     length = tuya_uart.set_wifi_uart_buffer(length, mcu_ver_value, VER_LEN);
-    length = tuya_uart.set_wifi_uart_buffer(length, mode_key, (unsigned short)(tuya_tools.my_strlen(mode_key)));
+    length = tuya_uart.set_wifi_uart_buffer(length, mode_key, (unsigned short)(tuya_tools.my_strlen((unsigned char*)mode_key)));
     length = tuya_uart.set_wifi_uart_buffer(length, (const unsigned char *)CONFIG_MODE, (unsigned short)(tuya_tools.my_strlen((unsigned char *)CONFIG_MODE)));
 
 #ifdef CONFIG_MODE_DELAY_TIME
@@ -710,7 +708,7 @@ void TuyaWifi::product_info_update(void)
     length = tuya_uart.set_wifi_uart_buffer(length, str, tuya_tools.my_strlen(str));
 #endif
 
-    length = tuya_uart.set_wifi_uart_buffer(length, product_info_end, tuya_tools.my_strlen(product_info_end));
+    length = tuya_uart.set_wifi_uart_buffer(length, product_info_end, tuya_tools.my_strlen((unsigned char*)product_info_end));
 
     tuya_uart.wifi_uart_write_frame(PRODUCT_INFO_CMD, MCU_TX_VER, length);
 }
@@ -724,11 +722,11 @@ void TuyaWifi::get_mcu_wifi_mode(void)
 {
     unsigned char length = 0;
 
-#if WIFI_CONTROL_SELF_MODE //Module self-processing
+#if WIFI_CONTROL_SELF_MODE // Module self-processing
     length = tuya_uart.set_wifi_uart_byte(length, wifi_state_led);
     length = tuya_uart.set_wifi_uart_byte(length, wifi_reset_key);
-#else 
-    //No need to process data
+#else
+    // No need to process data
 #endif
 
     tuya_uart.wifi_uart_write_frame(WORK_MODE_CMD, MCU_TX_VER, length);
@@ -736,14 +734,14 @@ void TuyaWifi::get_mcu_wifi_mode(void)
 
 /**
  * @description: mcu gets bool,value,enum type to send dp value. (raw, string type needs to be handled at the user's discretion. fault only report)
- * @param {unsigned char} dpid : data point ID 
- * @param {const unsigned char} value : dp data buffer address 
+ * @param {unsigned char} dpid : data point ID
+ * @param {const unsigned char} value : dp data buffer address
  * @param {unsigned short} len : data length
  * @return {unsigned char} Parsed data
  */
 unsigned long TuyaWifi::mcu_get_dp_download_data(unsigned char dpid, const unsigned char value[], unsigned short len)
 {
-    unsigned long ret;
+    unsigned long ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
     case DP_TYPE_BOOL:
@@ -773,198 +771,197 @@ unsigned long TuyaWifi::mcu_get_dp_download_data(unsigned char dpid, const unsig
  */
 unsigned char TuyaWifi::mcu_dp_update(unsigned char dpid, const unsigned char value[], unsigned short len)
 {
-    unsigned char ret;
+    unsigned char ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
-        case DP_TYPE_RAW:
-            ret = tuya_dp.mcu_dp_raw_update(dpid, value, len);
+    case DP_TYPE_RAW:
+        ret = tuya_dp.mcu_dp_raw_update(dpid, value, len);
         break;
 
-        case DP_TYPE_BOOL:
-            ret = tuya_dp.mcu_dp_bool_update(dpid, *value);
+    case DP_TYPE_BOOL:
+        ret = tuya_dp.mcu_dp_bool_update(dpid, *value);
         break;
 
-        case DP_TYPE_VALUE:
-            ret = tuya_dp.mcu_dp_value_update(dpid, *value);
+    case DP_TYPE_VALUE:
+        ret = tuya_dp.mcu_dp_value_update(dpid, *value);
         break;
 
-        case DP_TYPE_STRING:
-            ret = tuya_dp.mcu_dp_string_update(dpid, value, len);
+    case DP_TYPE_STRING:
+        ret = tuya_dp.mcu_dp_string_update(dpid, value, len);
         break;
 
-        case DP_TYPE_ENUM:
-            ret = tuya_dp.mcu_dp_enum_update(dpid, *value);
+    case DP_TYPE_ENUM:
+        ret = tuya_dp.mcu_dp_enum_update(dpid, *value);
         break;
 
-        case DP_TYPE_BITMAP:
-            ret = tuya_dp.mcu_dp_fault_update(dpid, *value);
+    case DP_TYPE_BITMAP:
+        ret = tuya_dp.mcu_dp_fault_update(dpid, *value);
         break;
 
-
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
 
 unsigned char TuyaWifi::mcu_dp_update(unsigned char dpid, unsigned char value, unsigned short len)
 {
-    unsigned char ret;
+    unsigned char ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
-        case DP_TYPE_BOOL:
-            ret = tuya_dp.mcu_dp_bool_update(dpid, value);
+    case DP_TYPE_BOOL:
+        ret = tuya_dp.mcu_dp_bool_update(dpid, value);
         break;
 
-        case DP_TYPE_ENUM:
-            ret = tuya_dp.mcu_dp_enum_update(dpid, value);
+    case DP_TYPE_ENUM:
+        ret = tuya_dp.mcu_dp_enum_update(dpid, value);
         break;
 
-        case DP_TYPE_VALUE:
-            ret = tuya_dp.mcu_dp_value_update(dpid, value);
+    case DP_TYPE_VALUE:
+        ret = tuya_dp.mcu_dp_value_update(dpid, value);
         break;
 
-        case DP_TYPE_BITMAP:
-            ret = tuya_dp.mcu_dp_fault_update(dpid, value);
+    case DP_TYPE_BITMAP:
+        ret = tuya_dp.mcu_dp_fault_update(dpid, value);
         break;
 
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
 
 unsigned char TuyaWifi::mcu_dp_update(unsigned char dpid, char value, unsigned short len)
 {
-    unsigned char ret;
+    unsigned char ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
-        case DP_TYPE_BOOL:
-            ret = tuya_dp.mcu_dp_bool_update(dpid, value);
+    case DP_TYPE_BOOL:
+        ret = tuya_dp.mcu_dp_bool_update(dpid, value);
         break;
 
-        case DP_TYPE_ENUM:
-            ret = tuya_dp.mcu_dp_enum_update(dpid, value);
+    case DP_TYPE_ENUM:
+        ret = tuya_dp.mcu_dp_enum_update(dpid, value);
         break;
 
-        case DP_TYPE_VALUE:
-            ret = tuya_dp.mcu_dp_value_update(dpid, value);
+    case DP_TYPE_VALUE:
+        ret = tuya_dp.mcu_dp_value_update(dpid, value);
         break;
 
-        case DP_TYPE_BITMAP:
-            ret = tuya_dp.mcu_dp_fault_update(dpid, value);
+    case DP_TYPE_BITMAP:
+        ret = tuya_dp.mcu_dp_fault_update(dpid, value);
         break;
 
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
 
 unsigned char TuyaWifi::mcu_dp_update(unsigned char dpid, unsigned long value, unsigned short len)
 {
-    unsigned char ret;
+    unsigned char ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
-        case DP_TYPE_BOOL:
-            ret = tuya_dp.mcu_dp_bool_update(dpid, value);
+    case DP_TYPE_BOOL:
+        ret = tuya_dp.mcu_dp_bool_update(dpid, value);
         break;
 
-        case DP_TYPE_ENUM:
-            ret = tuya_dp.mcu_dp_enum_update(dpid, value);
+    case DP_TYPE_ENUM:
+        ret = tuya_dp.mcu_dp_enum_update(dpid, value);
         break;
 
-        case DP_TYPE_VALUE:
-            ret = tuya_dp.mcu_dp_value_update(dpid, value);
+    case DP_TYPE_VALUE:
+        ret = tuya_dp.mcu_dp_value_update(dpid, value);
         break;
 
-        case DP_TYPE_BITMAP:
-            ret = tuya_dp.mcu_dp_fault_update(dpid, value);
+    case DP_TYPE_BITMAP:
+        ret = tuya_dp.mcu_dp_fault_update(dpid, value);
         break;
 
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
 
 unsigned char TuyaWifi::mcu_dp_update(unsigned char dpid, long value, unsigned short len)
 {
-    unsigned char ret;
+    unsigned char ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
-        case DP_TYPE_BOOL:
-            ret = tuya_dp.mcu_dp_bool_update(dpid, value);
+    case DP_TYPE_BOOL:
+        ret = tuya_dp.mcu_dp_bool_update(dpid, value);
         break;
 
-        case DP_TYPE_ENUM:
-            ret = tuya_dp.mcu_dp_enum_update(dpid, value);
+    case DP_TYPE_ENUM:
+        ret = tuya_dp.mcu_dp_enum_update(dpid, value);
         break;
 
-        case DP_TYPE_VALUE:
-            ret = tuya_dp.mcu_dp_value_update(dpid, value);
+    case DP_TYPE_VALUE:
+        ret = tuya_dp.mcu_dp_value_update(dpid, value);
         break;
 
-        case DP_TYPE_BITMAP:
-            ret = tuya_dp.mcu_dp_fault_update(dpid, value);
+    case DP_TYPE_BITMAP:
+        ret = tuya_dp.mcu_dp_fault_update(dpid, value);
         break;
 
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
 
 unsigned char TuyaWifi::mcu_dp_update(unsigned char dpid, unsigned int value, unsigned short len)
 {
-    unsigned char ret;
+    unsigned char ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
-        case DP_TYPE_BOOL:
-            ret = tuya_dp.mcu_dp_bool_update(dpid, value);
+    case DP_TYPE_BOOL:
+        ret = tuya_dp.mcu_dp_bool_update(dpid, value);
         break;
 
-        case DP_TYPE_ENUM:
-            ret = tuya_dp.mcu_dp_enum_update(dpid, value);
+    case DP_TYPE_ENUM:
+        ret = tuya_dp.mcu_dp_enum_update(dpid, value);
         break;
 
-        case DP_TYPE_VALUE:
-            ret = tuya_dp.mcu_dp_value_update(dpid, value);
+    case DP_TYPE_VALUE:
+        ret = tuya_dp.mcu_dp_value_update(dpid, value);
         break;
 
-        case DP_TYPE_BITMAP:
-            ret = tuya_dp.mcu_dp_fault_update(dpid, value);
+    case DP_TYPE_BITMAP:
+        ret = tuya_dp.mcu_dp_fault_update(dpid, value);
         break;
 
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
 
 unsigned char TuyaWifi::mcu_dp_update(unsigned char dpid, int value, unsigned short len)
 {
-    unsigned char ret;
+    unsigned char ret = 0;
     switch (download_cmd[get_dowmload_dpid_index(dpid)][1])
     {
-        case DP_TYPE_BOOL:
-            ret = tuya_dp.mcu_dp_bool_update(dpid, value);
+    case DP_TYPE_BOOL:
+        ret = tuya_dp.mcu_dp_bool_update(dpid, value);
         break;
 
-        case DP_TYPE_ENUM:
-            ret = tuya_dp.mcu_dp_enum_update(dpid, value);
+    case DP_TYPE_ENUM:
+        ret = tuya_dp.mcu_dp_enum_update(dpid, value);
         break;
 
-        case DP_TYPE_VALUE:
-            ret = tuya_dp.mcu_dp_value_update(dpid, value);
+    case DP_TYPE_VALUE:
+        ret = tuya_dp.mcu_dp_value_update(dpid, value);
         break;
 
-        case DP_TYPE_BITMAP:
-            ret = tuya_dp.mcu_dp_fault_update(dpid, value);
+    case DP_TYPE_BITMAP:
+        ret = tuya_dp.mcu_dp_fault_update(dpid, value);
         break;
 
-        default:
-            break;
+    default:
+        break;
     }
     return ret;
 }
@@ -993,7 +990,7 @@ unsigned char TuyaWifi::mcu_get_wifimode_flag(void)
 
 /**
  * @description: MCU set wifi working mode
- * @param {unsigned char} mode : enter mode 
+ * @param {unsigned char} mode : enter mode
  *                               0(SMART_CONFIG):enter smartconfig mode
  *                               1(AP_CONFIG):enter AP mode
  * @return {*}
@@ -1033,7 +1030,7 @@ unsigned char TuyaWifi::mcu_get_reset_wifi_flag(void)
 void TuyaWifi::mcu_reset_wifi(void)
 {
     reset_wifi_flag = RESET_WIFI_ERROR;
-    
+
     tuya_uart.wifi_uart_write_frame(WIFI_RESET_CMD, MCU_TX_VER, 0);
 }
 
@@ -1059,14 +1056,16 @@ unsigned char TuyaWifi::mcu_get_wifi_work_state(void)
 #if SUPPORT_GREEN_TIME
 char TuyaWifi::get_green_time(TUYA_WIFI_TIME *time, const unsigned int timeout)
 {
-    if (TY_NULL == time) {
+    if (TY_NULL == time)
+    {
         return -1;
     }
 
 #if WIFI_CONTROL_SELF_MODE
     /* nothing to do here*/
 #else
-    if (WIFI_CONN_CLOUD != mcu_get_wifi_work_state()) {
+    if (WIFI_CONN_CLOUD != mcu_get_wifi_work_state())
+    {
         return -1;
     }
 #endif
@@ -1074,7 +1073,8 @@ char TuyaWifi::get_green_time(TUYA_WIFI_TIME *time, const unsigned int timeout)
     unsigned long get_green_time_begin = 0;
     unsigned int delay_time = 100;
 
-    if (timeout > 10) {
+    if (timeout > 10)
+    {
         delay_time = timeout;
     }
 
@@ -1082,9 +1082,11 @@ char TuyaWifi::get_green_time(TUYA_WIFI_TIME *time, const unsigned int timeout)
     tuya_extras.mcu_request_green_time();
     /* 2.wait for green time */
     get_green_time_begin = millis();
-    while (millis()<(get_green_time_begin + timeout)) {
+    while (millis() < (get_green_time_begin + timeout))
+    {
         uart_service();
-        if (1 == _green_time.update_flag) { /* request green time success */
+        if (1 == _green_time.update_flag)
+        { /* request green time success */
             tuya_tools.my_memcpy(time, &_green_time, sizeof(_green_time));
             _green_time.update_flag = 0;
             return TY_SUCCESS;
@@ -1101,11 +1103,13 @@ char TuyaWifi::get_rtc_time(TUYA_WIFI_TIME *time, const unsigned int timeout)
     unsigned long get_rtc_time_begin = 0;
     unsigned int delay_time = 100;
 
-    if (TY_NULL == time) {
+    if (TY_NULL == time)
+    {
         return -1;
     }
 
-    if (timeout > 10) {
+    if (timeout > 10)
+    {
         delay_time = timeout;
     }
 
@@ -1113,9 +1117,11 @@ char TuyaWifi::get_rtc_time(TUYA_WIFI_TIME *time, const unsigned int timeout)
     tuya_extras.mcu_request_rtc_time();
     /* 2.wait for rtc time */
     get_rtc_time_begin = millis();
-    while (millis()<(get_rtc_time_begin + delay_time)) {
+    while (millis() < (get_rtc_time_begin + delay_time))
+    {
         uart_service();
-        if (1 == _rtc_time.update_flag) { /* request rtc time success */
+        if (1 == _rtc_time.update_flag)
+        { /* request rtc time success */
             tuya_tools.my_memcpy(time, &_rtc_time, sizeof(_rtc_time));
             _rtc_time.update_flag = 0;
             return TY_SUCCESS;
@@ -1125,10 +1131,10 @@ char TuyaWifi::get_rtc_time(TUYA_WIFI_TIME *time, const unsigned int timeout)
     return -2; /* request rtc time timeout */
 }
 #endif /* SUPPORT_RTC_TIME */
-/***********************************************************************************************************************
-* static functions
-***********************************************************************************************************************/
+       /***********************************************************************************************************************
+        * static functions
+        ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* End of file
-***********************************************************************************************************************/
+ * End of file
+ ***********************************************************************************************************************/

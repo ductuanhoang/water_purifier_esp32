@@ -111,6 +111,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/SoftUART/cmake_install.cmake")
   include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserBle/cmake_install.cmake")
   include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserJson/cmake_install.cmake")
+  include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/cmake_install.cmake")
   include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserUART/cmake_install.cmake")
   include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/app/cmake_install.cmake")
 

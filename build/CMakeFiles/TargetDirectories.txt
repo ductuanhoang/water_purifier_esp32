@@ -626,6 +626,13 @@ D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/edit_cac
 D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/rebuild_cache.dir
 D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/list_install_components.dir
 D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserJson/CMakeFiles/install/strip.dir
+D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/CMakeFiles/__idf_TuyaProtocol.dir
+D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/CMakeFiles/install/local.dir
+D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/CMakeFiles/install.dir
+D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/CMakeFiles/edit_cache.dir
+D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/CMakeFiles/rebuild_cache.dir
+D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/CMakeFiles/list_install_components.dir
+D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/TuyaProtocol/CMakeFiles/install/strip.dir
 D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/__idf_UserUART.dir
 D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/install/local.dir
 D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/UserUART/CMakeFiles/install.dir
