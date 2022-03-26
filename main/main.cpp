@@ -19,16 +19,15 @@ extern "C"
     void app_main(void);
 }
 
-
 void app_main(void)
 {
-    app_smart_config_init();
+    // app_smart_config_init();
     // uart_recieve_callback_init(tuya_wifi.uart_service_2);
     WaterPurifier_init();
     vTaskDelay(5000 / portTICK_PERIOD_MS);
     while (1)
     {
         WaterPurifier_Process();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }

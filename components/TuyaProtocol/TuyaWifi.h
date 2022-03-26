@@ -30,7 +30,7 @@ extern "C"
 {
     typedef void (*tuya_callback_dp_update_all)(void);
     typedef unsigned char (*tuya_callback_dp_download)(unsigned char dpid, const unsigned char value[], unsigned short length);
-    typedef unsigned char (*tuya_callback_dp_parser)(unsigned char dpid, const unsigned char value[], unsigned short length);
+    typedef unsigned char (*tuya_callback_dp_parser)(unsigned char dpid, unsigned short index, const unsigned char value[], unsigned short length);
 }
 
 class TuyaWifi

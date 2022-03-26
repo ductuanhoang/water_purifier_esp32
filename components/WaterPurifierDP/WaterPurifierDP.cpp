@@ -65,6 +65,7 @@ unsigned char dp_array[][2] = {
 extern "C"
 {
     void main_recieve_callback(unsigned char *buf, unsigned short len);
+    static void get_data_from_raw_data(unsigned char dpid, unsigned short index, const unsigned char value[], unsigned short len);
 }
 
 void main_recieve_callback(unsigned char *buf, unsigned short len)
@@ -72,9 +73,20 @@ void main_recieve_callback(unsigned char *buf, unsigned short len)
     tuya_wifi.uart_service_2(buf, len);
 }
 
-unsigned char main_parser_data(unsigned char dpid, const unsigned char value[], unsigned short length)
+/**
+ * @brief
+ *
+ * @param dpid
+ * @param index index of table data point
+ * @param value
+ * @param length
+ * @return unsigned char
+ */
+unsigned char main_parser_data(unsigned char dpid, unsigned short index, const unsigned char value[], unsigned short length)
 {
     ESP_LOGI(TAG, "dpid = %d", dpid);
+    ESP_LOGI(TAG, "index = %d", index);
+    get_data_from_raw_data(dpid, index, value, length);
     // ESP_LOGI(TAG, "value = %d");
     // ESP_LOGI(TAG, "value = %d");
 
@@ -99,7 +111,6 @@ void WaterPurifier_init(void)
     tuya_wifi.set_dp_cmd_total(dp_array, 20);
 }
 
-
 void WaterPurifier_Process(void)
 {
     tuya_wifi.ProcessTask();
@@ -107,9 +118,38 @@ void WaterPurifier_Process(void)
 /***********************************************************************************************************************
  * static functions
  ***********************************************************************************************************************/
-static void get_data_from_raw_data(const unsigned char value[], unsigned short len)
-{
 
+//=============================================================================
+// dp data point type
+//=============================================================================
+
+static void get_data_from_raw_data(unsigned char dpid, unsigned short index, const unsigned char value[], unsigned short len)
+{
+    ESP_LOGI(TAG, "get_data_from_raw_data");
+    switch (dp_array[index][1])
+    {
+    case DP_TYPE_RAW:
+        ESP_LOGI(TAG, "DP_TYPE_RAW");
+        /* code */
+        break;
+    case DP_TYPE_BOOL:
+        ESP_LOGI(TAG, "DP_TYPE_BOOL");
+        break;
+    case DP_TYPE_VALUE:
+        ESP_LOGI(TAG, "DP_TYPE_VALUE");
+        break;
+    case DP_TYPE_STRING:
+        ESP_LOGI(TAG, "DP_TYPE_STRING");
+        break;
+    case DP_TYPE_ENUM:
+        ESP_LOGI(TAG, "DP_TYPE_ENUM");
+        break;
+    case DP_TYPE_BITMAP:
+        ESP_LOGI(TAG, "DP_TYPE_BITMAP");
+        break;
+    default:
+        break;
+    }
 }
 /***********************************************************************************************************************
  * End of file

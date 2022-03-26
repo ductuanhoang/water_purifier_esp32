@@ -85,18 +85,20 @@ void TuyaWifi::ProcessTask(void)
     {
     case E_TUYA_WIFI_REQUEST_HEAT_BEAT:
         heat_beat_send();
-        wifi_process_state = E_TUYA_WIFI_REQUEST_PRODUCT_INFO;
+        wifi_process_state = E_TUYA_WIFI_REQUEST_HEAT_BEAT_AFTER_15SECOND;
         break;
     case E_TUYA_WIFI_REQUEST_HEAT_BEAT_AFTER_15SECOND:
+        wifi_process_state = E_TUYA_WIFI_REQUEST_PRODUCT_INFO;
         heat_beat_send();
         break;
     case E_TUYA_WIFI_REQUEST_PRODUCT_INFO:
+        ESP_LOGI(TAG, "E_TUYA_WIFI_REQUEST_PRODUCT_INFO");
         product_info_query();
         wifi_process_state = E_TUYA_WIFI_SEND_WORKING_STATE;
         break;
     case E_TUYA_WIFI_SEND_WORKING_STATE:
         send_mcu_wifi_mode(WIFI_CONN_CLOUD);
-        wifi_process_state = E_TUYA_WIFI_IDLE;
+        wifi_process_state = E_TUYA_WIFI_REQUEST_HEAT_BEAT;
     case E_TUYA_WIFI_CONTROL_EXAMPLE:
         send_control_on_off();
         break;
@@ -229,6 +231,14 @@ void TuyaWifi::uart_service_2(unsigned char *data, unsigned short length)
     unsigned short rx_in = 0;
     unsigned short offset = 0;
     unsigned short rx_value_len = 0;
+    ESP_LOGI(TAG, "recieve 1 = ");
+    for (size_t i = 0; i < rx_in; i++)
+    {
+        /* code */
+        printf("%02x ", tuya_uart.wifi_data_process_buf[i]);
+    }
+    printf("\r\n");
+
     if (length > sizeof(tuya_uart.wifi_data_process_buf))
         return;
     else
@@ -1371,7 +1381,7 @@ unsigned char TuyaWifi::data_point_parser_handle(const unsigned char value[])
     }
     else
     {
-        ret = dp_parser_handle(dp_id, value + 4, dp_len);
+        ret = dp_parser_handle(dp_id, index, value + 4, dp_len);
     }
     return ret = TY_SUCCESS;
 }
@@ -1388,7 +1398,6 @@ void TuyaWifi::dp_parser_func_register(tuya_callback_dp_parser _func)
 
 void TuyaWifi::send_control_on_off(void)
 {
-    
 }
 /***********************************************************************************************************************
  * static functions
