@@ -51,6 +51,10 @@
 
 #define MCU_RX_VER      0x00    //Module send frame protocol version number
 #define MCU_TX_VER      0x03    //MCU send frame protocol version number(default)
+
+#define WIFI_RX_VER     0x03 //
+#define WIFI_TX_VER     0x00 //
+
 #define PROTOCOL_HEAD   0x07    //Fixed protocol header length
 #define FRAME_FIRST     0x55    //Frame header first byte
 #define FRAME_SECOND    0xaa    //Frame header second byte
@@ -68,19 +72,19 @@
 //=============================================================================
 //command indx  type
 //=============================================================================
-#define         COMMAND_HEART_BEAT                        0x00	//Detect the heartbeat
-#define         COMMAND_QUERY_INFO                        0x01	//Query product information
-#define         COMMAND_QUERY_WORKING_MODE                0x02	//Query working mode of the module
-#define         COMMAND_REPORT_STATUS_WIFI                0x03	//Report the network status of the device
-#define         COMMAND_RESET_WIFI                        0x04	//Reset Wi-Fi
-#define         COMMAND_RESET_WIFI_SWITCH_PAIR_MODE       0x05	//Reset Wi-Fi and switch network pairing mode
-#define         COMMAND_SEND_DP_COMMAND                   0x06	//Send the DP commands
-#define         COMMAND_REPORT_DP_STATUS                  0x07	//Report the DP status
-#define         COMMAND_QUERY_STATUS                      0x08	//Query the status
-#define         COMMAND_START_OTA                         0x0a	//Start OTA updates (optional)
-#define         COMMAND_TRANSFER_OTA_UPDATE_PACKET        0x0b	//Transfer OTA update package (optional)
-#define         COMMAND_GET_LOCAL_TIME                    0x1c	//Get the local time (optional)
-#define         COMMAND_TEST_WIFI                         0x0e	//Test the Wi-Fi function
+// #define         COMMAND_HEART_BEAT                        0x00	//Detect the heartbeat
+// #define         COMMAND_QUERY_INFO                        0x01	//Query product information
+// #define         COMMAND_QUERY_WORKING_MODE                0x02	//Query working mode of the module
+// #define         COMMAND_REPORT_STATUS_WIFI                0x03	//Report the network status of the device
+// #define         COMMAND_RESET_WIFI                        0x04	//Reset Wi-Fi
+// #define         COMMAND_RESET_WIFI_SWITCH_PAIR_MODE       0x05	//Reset Wi-Fi and switch network pairing mode
+// #define         COMMAND_SEND_DP_COMMAND                   0x06	//Send the DP commands
+// #define         COMMAND_REPORT_DP_STATUS                  0x07	//Report the DP status
+// #define         COMMAND_QUERY_STATUS                      0x08	//Query the status
+// #define         COMMAND_START_OTA                         0x0a	//Start OTA updates (optional)
+// #define         COMMAND_TRANSFER_OTA_UPDATE_PACKET        0x0b	//Transfer OTA update package (optional)
+// #define         COMMAND_GET_LOCAL_TIME                    0x1c	//Get the local time (optional)
+// #define         COMMAND_TEST_WIFI                         0x0e	//Test the Wi-Fi function
 //=============================================================================
 //Data frame type
 //=============================================================================

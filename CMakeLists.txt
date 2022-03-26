@@ -6,6 +6,7 @@ set(EXTRA_COMPONENT_DIRS "components/UserBle"
 						 "components/UserJson"
 						 "components/UserUart"
 						 "components/app"
+						 "components/WaterPurifierDP"
 			 )
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)

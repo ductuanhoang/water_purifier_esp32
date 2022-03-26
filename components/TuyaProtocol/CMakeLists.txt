@@ -1,5 +1,5 @@
 
-set(pri_req UserBle UserJson)
+set(pri_req "UserUART")
 file(GLOB_RECURSE SOURCES *.cpp)
 idf_component_register(SRCS ${SOURCES}
                        INCLUDE_DIRS .

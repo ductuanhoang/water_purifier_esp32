@@ -14,10 +14,10 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 
+#define USER_UART_TX GPIO_NUM_17
+#define USER_UART_RX GPIO_NUM_16
 
 static const char *TAG = "user_uart";
-
-
 static uart_write_callback_t uart_write_callback = NULL;
 static uart_read_callback_t uart_read_callback = NULL;
 /**
@@ -66,7 +66,7 @@ static void uart_event_task(void *pvParameters)
                 uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
                 ESP_LOGI(TAG, "[DATA EVT]:");
                 // uart_write_bytes(EX_UART_NUM, (const char *)dtmp, event.size);
-                uart_read_callback(dtmp, event.size);
+                uart_read_callback((unsigned char *)dtmp, (unsigned short)event.size);
                 break;
             // Event of HW FIFO overflow detected
             case UART_FIFO_OVF:
@@ -138,7 +138,7 @@ void user_uart_init(void)
     /* Configure parameters of an UART driver,
      * communication pins and install the driver */
     uart_config_t uart_config = {
-        .baud_rate = 115200,
+        .baud_rate = 9600,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
@@ -153,7 +153,7 @@ void user_uart_init(void)
     esp_log_level_set(TAG, ESP_LOG_INFO);
     // Set UART pins (using UART0 default pins ie no changes.)
     // uart_set_pin(EX_UART_NUM, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    uart_set_pin(UART_NUM_2, GPIO_NUM_17, GPIO_NUM_16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    uart_set_pin(UART_NUM_2, USER_UART_TX, USER_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
     // Set uart pattern detect function.
     uart_enable_pattern_det_baud_intr(EX_UART_NUM, '+', PATTERN_CHR_NUM, 9, 0, 0);
@@ -164,7 +164,7 @@ void user_uart_init(void)
     xTaskCreate(uart_event_task, "uart_event_task", 2048, NULL, 12, NULL);
 }
 
-void uart_recieve_callback_init(uart_read_callback_t *callback)
+void uart_recieve_callback_init(uart_read_callback_t callback)
 {
     if (callback)
     {
@@ -177,7 +177,7 @@ void uart_recieve_callback_init(uart_read_callback_t *callback)
     }
 }
 
-void uart_send_callback(uint8_t *data, uint8_t length)
+void uart_send_callback(uint8_t *data, unsigned short length)
 {
     uart_write_bytes(EX_UART_NUM, (const char *)data, length);
 }

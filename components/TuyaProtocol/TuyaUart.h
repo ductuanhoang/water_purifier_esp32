@@ -38,7 +38,7 @@ public:
     volatile unsigned char wifi_uart_rx_buf[PROTOCOL_HEAD + WIFI_UART_RECV_BUF_LMT];     //Serial data processing buffer
     volatile unsigned char wifi_uart_tx_buf[PROTOCOL_HEAD + WIFIR_UART_SEND_BUF_LMT];    //Serial receive buffer
     volatile unsigned char wifi_data_process_buf[PROTOCOL_HEAD + WIFI_DATA_PROCESS_LMT]; //Serial port send buffer
-
+    volatile unsigned short wifi_data_process_len;
     TuyaUart(void);
     ~TuyaUart(void);
     void wifi_protocol_init(void);
@@ -54,6 +54,10 @@ public:
     unsigned short set_wifi_uart_byte(unsigned short dest, unsigned char byte);
     unsigned short set_wifi_uart_buffer(unsigned short dest, const unsigned char *src, unsigned short len);
 
+    void wifi_uart_write_frame_heartbeat(void);
+    void wifi_uart_write_frame_QueryProductInfo(void);
+    void wifi_uart_write_frame_QueryWorkingMode(void);
+    void wifi_uart_write_frame_ReportWiFiStatus(void);
     /* serial set */
     bool _isHWSerial;
 

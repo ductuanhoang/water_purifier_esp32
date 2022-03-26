@@ -21,6 +21,7 @@
 #include "TuyaWifi.h"
 #include "TuyaUart.h"
 #include "TuyaTools.h"
+#include "user_uart.h"
 /***********************************************************************************************************************
  * Macro definitions
  ***********************************************************************************************************************/
@@ -28,6 +29,7 @@
 /***********************************************************************************************************************
  * Typedef definitions
  ***********************************************************************************************************************/
+extern volatile unsigned char stop_update_flag; // ENABLE:Stop all data uploads   DISABLE:Restore all data uploads
 
 /***********************************************************************************************************************
  * Private global variables and functions
@@ -133,11 +135,12 @@ void TuyaUart::wifi_uart_write_data(unsigned char *in, unsigned short len)
         return;
     }
 
-    while (len--)
-    {
-        uart_transmit_output(*in);
-        in++;
-    }
+    // while (len--)
+    // {
+    //     uart_transmit_output(*in);
+    //     in++;
+    // }
+    uart_send_callback(in, len);
 }
 
 void TuyaUart::wifi_uart_write_frame(unsigned char fr_type, unsigned char fr_ver, unsigned short len)
@@ -156,6 +159,74 @@ void TuyaUart::wifi_uart_write_frame(unsigned char fr_type, unsigned char fr_ver
     wifi_uart_tx_buf[len - 1] = check_sum;
 
     wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len);
+}
+/**
+ * @brief 
+ * 
+ */
+void TuyaUart::wifi_uart_write_frame_heartbeat(void)
+{
+    unsigned short len = 0;
+    // 55 aa 00 00 00 00 ff
+    unsigned char check_sum = 0xff;
+
+    wifi_uart_tx_buf[HEAD_FIRST] = 0x55;
+    wifi_uart_tx_buf[HEAD_SECOND] = 0xaa;
+    wifi_uart_tx_buf[PROTOCOL_VERSION] = 0x00;
+    wifi_uart_tx_buf[FRAME_TYPE] = 0x00;
+    wifi_uart_tx_buf[LENGTH_HIGH] = 0x00 >> 8;
+    wifi_uart_tx_buf[LENGTH_LOW] = 0x00 & 0xff;
+
+    len += PROTOCOL_HEAD;
+    wifi_uart_tx_buf[len - 1] = check_sum;
+    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len - 1);
+}
+/**
+ * @brief 
+ * 
+ */
+void TuyaUart::wifi_uart_write_frame_QueryProductInfo(void)
+{
+    // 55 aa 00 01 00 00 00
+    unsigned short len = 0;
+    unsigned char check_sum = 0x00;
+
+    wifi_uart_tx_buf[HEAD_FIRST] = 0x55;
+    wifi_uart_tx_buf[HEAD_SECOND] = 0xaa;
+    wifi_uart_tx_buf[PROTOCOL_VERSION] = 0x00;
+    wifi_uart_tx_buf[FRAME_TYPE] = 0x01;
+    wifi_uart_tx_buf[LENGTH_HIGH] = 0x00 >> 8;
+    wifi_uart_tx_buf[LENGTH_LOW] = 0x00 & 0xff;
+
+    len += PROTOCOL_HEAD;
+    wifi_uart_tx_buf[len - 1] = check_sum;
+    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len - 1);
+}
+/**
+ * @brief 
+ * 
+ */
+void TuyaUart::wifi_uart_write_frame_QueryWorkingMode(void)
+{
+    // 55 aa 00 02 00 00 01
+    unsigned short len = 0;
+    unsigned char check_sum = 0x01;
+
+    wifi_uart_tx_buf[HEAD_FIRST] = 0x55;
+    wifi_uart_tx_buf[HEAD_SECOND] = 0xaa;
+    wifi_uart_tx_buf[PROTOCOL_VERSION] = 0x00;
+    wifi_uart_tx_buf[FRAME_TYPE] = 0x02;
+    wifi_uart_tx_buf[LENGTH_HIGH] = 0x00 >> 8;
+    wifi_uart_tx_buf[LENGTH_LOW] = 0x00 & 0xff;
+
+    len += PROTOCOL_HEAD;
+    wifi_uart_tx_buf[len - 1] = check_sum;
+    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len - 1);
+}
+
+void TuyaUart::wifi_uart_write_frame_ReportWiFiStatus(void)
+{
+    // TODO
 }
 
 unsigned short TuyaUart::set_wifi_uart_byte(unsigned short dest, unsigned char byte)

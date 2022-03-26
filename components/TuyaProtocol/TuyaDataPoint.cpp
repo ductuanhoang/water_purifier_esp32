@@ -17,6 +17,7 @@
 
 extern TuyaTools tuya_tools;
 extern TuyaUart tuya_uart;
+extern volatile unsigned char stop_update_flag; // ENABLE:Stop all data uploads   DISABLE:Restore all data uploads
 
 unsigned char TuyaDataPoint::mcu_get_dp_download_bool(const unsigned char value[], unsigned short len)
 {

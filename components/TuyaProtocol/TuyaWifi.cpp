@@ -19,11 +19,20 @@
 #include "TuyaWifi.h"
 #include "TuyaUart.h"
 #include "TuyaTools.h"
+#include "TuyaDataPoint.h"
+#include "TuyaDefs.h"
+#include <stdio.h>
+#include <string.h>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "esp_log.h"
 
 /***********************************************************************************************************************
  * Macro definitions
  ***********************************************************************************************************************/
-
+#define TAG "TuyaWifi.cpp"
 /***********************************************************************************************************************
  * Typedef definitions
  ***********************************************************************************************************************/
@@ -39,11 +48,7 @@
 /***********************************************************************************************************************
  * Imported global variables and functions (from other files)
  ***********************************************************************************************************************/
-#include <TuyaWifi.h>
-#include "TuyaTools.h"
-#include "TuyaDataPoint.h"
-#include "TuyaDefs.h"
-#include <stdio.h>
+volatile unsigned char stop_update_flag = 0; // ENABLE:Stop all data uploads   DISABLE:Restore all data uploads
 
 TuyaTools tuya_tools;
 TuyaUart tuya_uart;
@@ -69,6 +74,36 @@ TuyaWifi::TuyaWifi(void)
 #endif
 }
 
+/**
+ * @brief Construct a new Tuya Wifi:: Process Task object
+ * need call in loop
+ *
+ */
+void TuyaWifi::ProcessTask(void)
+{
+    switch (wifi_process_state)
+    {
+    case E_TUYA_WIFI_REQUEST_HEAT_BEAT:
+        heat_beat_send();
+        wifi_process_state = E_TUYA_WIFI_REQUEST_PRODUCT_INFO;
+        break;
+    case E_TUYA_WIFI_REQUEST_HEAT_BEAT_AFTER_15SECOND:
+        heat_beat_send();
+        break;
+    case E_TUYA_WIFI_REQUEST_PRODUCT_INFO:
+        product_info_query();
+        wifi_process_state = E_TUYA_WIFI_SEND_WORKING_STATE;
+        break;
+    case E_TUYA_WIFI_SEND_WORKING_STATE:
+        send_mcu_wifi_mode(WIFI_CONN_CLOUD);
+        wifi_process_state = E_TUYA_WIFI_IDLE;
+    case E_TUYA_WIFI_CONTROL_EXAMPLE:
+        send_control_on_off();
+        break;
+    default:
+        break;
+    }
+}
 /**
  * @description: Initialize product information
  * @param {unsigned char} *pid : Product ID(Create products on the Tuya IoT platform to get)
@@ -187,6 +222,89 @@ void TuyaWifi::uart_service(void)
     }
 }
 
+void TuyaWifi::uart_service_2(unsigned char *data, unsigned short length)
+{
+    tuya_uart.wifi_data_process_len = 0;
+    // unsigned char ret;
+    unsigned short rx_in = 0;
+    unsigned short offset = 0;
+    unsigned short rx_value_len = 0;
+    if (length > sizeof(tuya_uart.wifi_data_process_buf))
+        return;
+    else
+    {
+        // tuya_tools.my_memcpy(tuya_uart.wifi_data_process_buf, data, length);
+        for (unsigned short i = 0; i < length; i++)
+        {
+            tuya_uart.wifi_data_process_buf[rx_in++] = data[i];
+        }
+        ESP_LOGI(TAG, "recieve 2 = ");
+        for (size_t i = 0; i < rx_in; i++)
+        {
+            /* code */
+            printf("%02x ", tuya_uart.wifi_data_process_buf[i]);
+        }
+        printf("\r\n");
+        // check header
+        while ((rx_in - offset) >= PROTOCOL_HEAD)
+        {
+            if (tuya_uart.wifi_data_process_buf[offset + HEAD_FIRST] != FRAME_FIRST)
+            {
+                offset++;
+                ESP_LOGI(TAG, "go to here 1");
+                continue;
+            }
+
+            if (tuya_uart.wifi_data_process_buf[offset + HEAD_SECOND] != FRAME_SECOND)
+            {
+                offset++;
+                ESP_LOGI(TAG, "go to here 2");
+                continue;
+            }
+
+            // if (tuya_uart.wifi_data_process_buf[offset + PROTOCOL_VERSION] != MCU_RX_VER)
+            // {
+            //     offset += 2;
+            //     ESP_LOGI(TAG, "go to here 3");
+            //     continue;
+            // }
+
+            rx_value_len = tuya_uart.wifi_data_process_buf[offset + LENGTH_HIGH] * 0x100;
+            rx_value_len += (tuya_uart.wifi_data_process_buf[offset + LENGTH_LOW] + PROTOCOL_HEAD);
+            if (rx_value_len > sizeof(tuya_uart.wifi_data_process_buf) + PROTOCOL_HEAD)
+            {
+                offset += 3;
+                ESP_LOGI(TAG, "go to here 4");
+                continue;
+            }
+
+            if ((rx_in - offset) < rx_value_len)
+            {
+                ESP_LOGI(TAG, "go to here 5");
+                break;
+            }
+
+            // data receive finish
+            if (tuya_tools.get_check_sum((unsigned char *)tuya_uart.wifi_data_process_buf + offset, rx_value_len - 1) != tuya_uart.wifi_data_process_buf[offset + rx_value_len - 1])
+            {
+                // check error
+                offset += 3;
+                continue;
+            }
+
+            tuya_uart.wifi_data_process_len = rx_in;
+            data_handle(offset);
+            offset += rx_value_len;
+        } // end while
+
+        rx_in -= offset;
+        if (rx_in > 0)
+        {
+            ESP_LOGI(TAG, "go to here 6");
+            tuya_tools.my_memcpy((char *)tuya_uart.wifi_data_process_buf, (const char *)tuya_uart.wifi_data_process_buf + offset, rx_in);
+        }
+    }
+}
 /**
  * @description: Data frame processing
  * @param {unsigned short} offset : Data start position
@@ -194,6 +312,7 @@ void TuyaWifi::uart_service(void)
  */
 void TuyaWifi::data_handle(unsigned short offset)
 {
+
 #ifdef SUPPORT_MCU_FIRM_UPDATE
     unsigned char *firmware_addr = NULL;
     static unsigned short firm_size;           // Upgrade package size
@@ -208,6 +327,7 @@ void TuyaWifi::data_handle(unsigned short offset)
     unsigned char ret;
     unsigned short i, total_len;
     unsigned char cmd_type = tuya_uart.wifi_data_process_buf[offset + FRAME_TYPE];
+    ESP_LOGI(TAG, "cmd_type = %x", cmd_type);
 
 #if ((defined VOICE_MODULE_PROTOCOL_ENABLE) || (defined BLE_RELATED_FUNCTION_ENABLE) || (defined MODULE_EXPANDING_SERVICE_ENABLE) ||        \
      (defined IR_TX_RX_TEST_ENABLE) || (defined GET_IR_STATUS_ENABLE) || (defined MCU_DP_UPLOAD_SYN) || (defined GET_WIFI_STATUS_ENABLE) || \
@@ -233,23 +353,28 @@ void TuyaWifi::data_handle(unsigned short offset)
     switch (cmd_type)
     {
     case HEAT_BEAT_CMD: // Heartbeat package
-        heat_beat_check();
+        // heat_beat_check();
+        ESP_LOGI(TAG, "response HEAT_BEAT_CMD");
         break;
 
     case PRODUCT_INFO_CMD: // Product information
-        product_info_update();
+        // product_info_update();
+        ESP_LOGI(TAG, "response PRODUCT_INFO_CMD");
+        product_info_parse((unsigned char *)tuya_uart.wifi_data_process_buf + DATA_START, tuya_uart.wifi_data_process_len - DATA_START);
         break;
 
     case WORK_MODE_CMD: // Query the module working mode set by the MCU
-        get_mcu_wifi_mode();
+                        // get_mcu_wifi_mode();
+        ESP_LOGI(TAG, "response WORK_MODE_CMD");
         break;
 
 #if WIFI_CONTROL_SELF_MODE
         /* nothing to do here */
 #else
     case WIFI_STATE_CMD: // Wifi working status
-        wifi_work_state = tuya_uart.wifi_data_process_buf[offset + DATA_START];
-        tuya_uart.wifi_uart_write_frame(WIFI_STATE_CMD, MCU_TX_VER, 0);
+        ESP_LOGI(TAG, "response WIFI_STATE_CMD");
+        // wifi_work_state = tuya_uart.wifi_data_process_buf[offset + DATA_START];
+        // tuya_uart.wifi_uart_write_frame(WIFI_STATE_CMD, wifi_work_state, 0);
 #ifdef WEATHER_ENABLE
         if (wifi_work_state == WIFI_CONNECTED && isWoSend == 0) // When the WIFI connection is successful, open the weather data only once
         {
@@ -269,6 +394,7 @@ void TuyaWifi::data_handle(unsigned short offset)
 #endif
 
     case DATA_QUERT_CMD: // Order send
+        ESP_LOGI(TAG, "response DATA_QUERT_CMD");
         total_len = (tuya_uart.wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | tuya_uart.wifi_data_process_buf[offset + LENGTH_LOW];
 
         for (i = 0; i < total_len;)
@@ -290,8 +416,27 @@ void TuyaWifi::data_handle(unsigned short offset)
             i += (dp_len + 4);
         }
         break;
-
+    case STATE_UPLOAD_CMD:
+        ESP_LOGI(TAG, "response STATE_UPLOAD_CMD");
+        total_len = (tuya_uart.wifi_data_process_buf[offset + LENGTH_HIGH] << 8) | tuya_uart.wifi_data_process_buf[offset + LENGTH_LOW];
+        ESP_LOGI(TAG, "total_len = %d", total_len);
+        ret = data_point_parser_handle((unsigned char *)tuya_uart.wifi_data_process_buf + offset + DATA_START);
+        if (TY_SUCCESS == ret)
+        {
+            // Send success
+        }
+        else
+        {
+            // Send fault
+        }
+        // for (i = 0; i < total_len;)
+        // {
+        //     dp_len = tuya_uart.wifi_data_process_buf[offset + DATA_START + i + 2] * 0x100;
+        //     dp_len += tuya_uart.wifi_data_process_buf[offset + DATA_START + i + 3];
+        // }
+        break;
     case STATE_QUERY_CMD: // Status query
+        ESP_LOGI(TAG, "response STATE_QUERY_CMD");
         all_data_update();
         break;
 
@@ -649,7 +794,7 @@ void TuyaWifi::dp_update_all_func_register(tuya_callback_dp_update_all _func)
 }
 
 /**
- * @description: Heartbeat packet detection
+ * @description: Heartbeat packet detection send from MCU to mocule wifi
  * @param {*}
  * @return {*}
  */
@@ -688,7 +833,7 @@ void TuyaWifi::product_info_update(void)
     length = tuya_uart.set_wifi_uart_buffer(length, product_id, PID_LEN);
     length = tuya_uart.set_wifi_uart_buffer(length, mcu_ver_key, (unsigned short)(tuya_tools.my_strlen((unsigned char *)mcu_ver_key)));
     length = tuya_uart.set_wifi_uart_buffer(length, mcu_ver_value, VER_LEN);
-    length = tuya_uart.set_wifi_uart_buffer(length, mode_key, (unsigned short)(tuya_tools.my_strlen((unsigned char*)mode_key)));
+    length = tuya_uart.set_wifi_uart_buffer(length, mode_key, (unsigned short)(tuya_tools.my_strlen((unsigned char *)mode_key)));
     length = tuya_uart.set_wifi_uart_buffer(length, (const unsigned char *)CONFIG_MODE, (unsigned short)(tuya_tools.my_strlen((unsigned char *)CONFIG_MODE)));
 
 #ifdef CONFIG_MODE_DELAY_TIME
@@ -708,7 +853,7 @@ void TuyaWifi::product_info_update(void)
     length = tuya_uart.set_wifi_uart_buffer(length, str, tuya_tools.my_strlen(str));
 #endif
 
-    length = tuya_uart.set_wifi_uart_buffer(length, product_info_end, tuya_tools.my_strlen((unsigned char*)product_info_end));
+    length = tuya_uart.set_wifi_uart_buffer(length, product_info_end, tuya_tools.my_strlen((unsigned char *)product_info_end));
 
     tuya_uart.wifi_uart_write_frame(PRODUCT_INFO_CMD, MCU_TX_VER, length);
 }
@@ -1131,9 +1276,123 @@ char TuyaWifi::get_rtc_time(TUYA_WIFI_TIME *time, const unsigned int timeout)
     return -2; /* request rtc time timeout */
 }
 #endif /* SUPPORT_RTC_TIME */
-       /***********************************************************************************************************************
-        * static functions
-        ***********************************************************************************************************************/
+
+/* message send from wifi to mcu
+Detect the heartbeat
+Query product information
+Query working mode of the module
+Report the Wi-Fi status
+Reset Wi-Fi.
+Reset the Wi-Fi and select a pairing mode
+Query working status of the MCU
+Production test command
+*/
+
+/**
+ * @brief heat beat send from module wifi to MCU
+ *
+ * example: The module sends: 55 aa 00 00 00 00 ff
+ * {55}{AA}{00}{00}{00}{00}
+ */
+void TuyaWifi::heat_beat_send(void)
+{
+    tuya_uart.wifi_uart_write_frame_heartbeat();
+}
+
+/**
+ * @brief query product information from wifi to mcu
+ *
+ */
+void TuyaWifi::product_info_query(void)
+{
+    // The module sends:	0x55aa	0x00	0x01	0x0000	None
+    tuya_uart.wifi_uart_write_frame_QueryProductInfo();
+}
+
+/**
+ * @brief query mode working mode of MCU
+ *
+ */
+void TuyaWifi::working_mode_query(void)
+{
+    // The module sends:	0x55aa	0x00	0x01	0x0000	None
+    tuya_uart.wifi_uart_write_frame_QueryWorkingMode();
+}
+
+void TuyaWifi::product_info_parse(unsigned char *message, unsigned short length)
+{
+    ESP_LOGI(TAG, "product information %d = %s", tuya_uart.wifi_data_process_len, message);
+}
+
+/**
+ * @description:send the working mode of wifi to mcu
+ * @param {*}
+ * @return {*}
+ */
+// selft test wifi working state is 0x04
+void TuyaWifi::send_mcu_wifi_mode(unsigned char mode)
+{
+    ESP_LOGI(TAG, "send_mcu_wifi_mode");
+    unsigned char length = 0;
+
+    wifi_work_state = mode;
+
+    length = tuya_uart.set_wifi_uart_byte(length, wifi_work_state);
+
+    tuya_uart.wifi_uart_write_frame(WIFI_TX_VER, WIFI_STATE_CMD, length);
+}
+
+/**
+ * @description: Delivery data processing
+ * @param {const unsigned char} value : Send data source pointer
+ * @return Return data processing result
+ */
+unsigned char TuyaWifi::data_point_parser_handle(const unsigned char value[])
+{
+    unsigned char dp_id, index;
+    unsigned char dp_type;
+    unsigned char ret = 0;
+    unsigned short dp_len;
+
+    dp_id = value[0];
+    dp_type = value[1];
+    dp_len = value[2] * 0x100;
+    dp_len += value[3];
+
+    ESP_LOGI(TAG, "dp_id = %d", dp_id);
+    ESP_LOGI(TAG, "dp_type = %d", dp_type);
+    ESP_LOGI(TAG, "dp_len = %d", dp_len);
+
+    index = get_dowmload_dpid_index(dp_id);
+    if (dp_type != download_cmd[index][1])
+    {
+        // Error message
+        ret = TY_FALSE;
+    }
+    else
+    {
+        ret = dp_parser_handle(dp_id, value + 4, dp_len);
+    }
+    return ret = TY_SUCCESS;
+}
+
+/**
+ * @description: DP command processing callback function
+ * @param {tuya_callback_dp_download} _func
+ * @return {*}
+ */
+void TuyaWifi::dp_parser_func_register(tuya_callback_dp_parser _func)
+{
+    dp_parser_handle = _func;
+}
+
+void TuyaWifi::send_control_on_off(void)
+{
+    
+}
+/***********************************************************************************************************************
+ * static functions
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
  * End of file
