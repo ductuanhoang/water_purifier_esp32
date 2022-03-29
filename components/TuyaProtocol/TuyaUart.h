@@ -58,6 +58,7 @@ public:
     void wifi_uart_write_frame_QueryProductInfo(void);
     void wifi_uart_write_frame_QueryWorkingMode(void);
     void wifi_uart_write_frame_ReportWiFiStatus(void);
+    void wifi_uart_write_frame_QueryDpStatus(void);
     /* serial set */
     bool _isHWSerial;
 

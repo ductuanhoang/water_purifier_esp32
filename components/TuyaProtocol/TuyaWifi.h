@@ -42,7 +42,9 @@ public:
         E_TUYA_WIFI_REQUEST_HEAT_BEAT_AFTER_15SECOND,
         E_TUYA_WIFI_REQUEST_PRODUCT_INFO,
         E_TUYA_WIFI_SEND_WORKING_STATE,
-        E_TUYA_WIFI_CONTROL_EXAMPLE,
+        E_TUYA_WIFI_CONTROL_EXAMPLE_ON,
+        E_TUYA_WIFI_CONTROL_EXAMPLE_OFF,
+        E_TUYA_WIFI_QUERY_ALL_DP,
         E_TUYA_WIFI_IDLE,
     } TuyaWifi_Process_t;
     TuyaWifi(void);
@@ -101,9 +103,10 @@ public:
      *
      */
     void working_mode_query(void);
+    void dp_query_send(void);
 
     void send_mcu_wifi_mode(unsigned char mode);
-    void send_control_on_off(void);
+    void send_control_on_off(int dp ,bool state);
 
 private:
 #if WIFI_CONTROL_SELF_MODE

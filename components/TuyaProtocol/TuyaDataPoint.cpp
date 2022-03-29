@@ -82,7 +82,7 @@ unsigned char TuyaDataPoint::mcu_dp_bool_update(unsigned char dpid, unsigned cha
         send_len = tuya_uart.set_wifi_uart_byte(send_len, 1);
     }
 
-    tuya_uart.wifi_uart_write_frame(STATE_UPLOAD_CMD, MCU_TX_VER, send_len);
+    tuya_uart.wifi_uart_write_frame(0x06, 0x00, send_len);
 
     return TY_SUCCESS;
 }

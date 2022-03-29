@@ -98,9 +98,21 @@ void TuyaWifi::ProcessTask(void)
         break;
     case E_TUYA_WIFI_SEND_WORKING_STATE:
         send_mcu_wifi_mode(WIFI_CONN_CLOUD);
-        wifi_process_state = E_TUYA_WIFI_REQUEST_HEAT_BEAT;
-    case E_TUYA_WIFI_CONTROL_EXAMPLE:
-        send_control_on_off();
+        wifi_process_state = E_TUYA_WIFI_QUERY_ALL_DP;
+    case E_TUYA_WIFI_CONTROL_EXAMPLE_ON:
+        ESP_LOGI(TAG, "E_TUYA_WIFI_CONTROL_EXAMPLE_ON");
+        // send_control_on_off(12, true);
+        wifi_process_state = E_TUYA_WIFI_CONTROL_EXAMPLE_OFF;
+        break;
+    case E_TUYA_WIFI_CONTROL_EXAMPLE_OFF:
+        ESP_LOGI(TAG, "E_TUYA_WIFI_CONTROL_EXAMPLE_OFF");
+        // send_control_on_off(12, false);
+        wifi_process_state = E_TUYA_WIFI_QUERY_ALL_DP;
+        break;
+    case E_TUYA_WIFI_QUERY_ALL_DP:
+        ESP_LOGI(TAG, "E_TUYA_WIFI_QUERY_ALL_DP");
+        dp_query_send();
+        wifi_process_state = E_TUYA_WIFI_REQUEST_HEAT_BEAT_AFTER_15SECOND;
         break;
     default:
         break;
@@ -1329,6 +1341,10 @@ void TuyaWifi::working_mode_query(void)
     tuya_uart.wifi_uart_write_frame_QueryWorkingMode();
 }
 
+void TuyaWifi::dp_query_send(void)
+{
+    tuya_uart.wifi_uart_write_frame_QueryDpStatus();
+}
 void TuyaWifi::product_info_parse(unsigned char *message, unsigned short length)
 {
     ESP_LOGI(TAG, "product information %d = %s", tuya_uart.wifi_data_process_len, message);
@@ -1396,8 +1412,9 @@ void TuyaWifi::dp_parser_func_register(tuya_callback_dp_parser _func)
     dp_parser_handle = _func;
 }
 
-void TuyaWifi::send_control_on_off(void)
+void TuyaWifi::send_control_on_off(int dp, bool state)
 {
+    mcu_dp_update(dp, state, 1);
 }
 /***********************************************************************************************************************
  * static functions

@@ -16,6 +16,7 @@
  * Includes <System Includes>
  ***********************************************************************************************************************/
 #include "WaterPurifierDP.h"
+#include "WaterPurifier_PacketMessage.h"
 #include "TuyaDefs.h"
 #include "TuyaWifi.h"
 #include "user_uart.h"
@@ -133,15 +134,18 @@ static void get_data_from_raw_data(unsigned char dpid, unsigned short index, con
         /* code */
         break;
     case DP_TYPE_BOOL:
-        ESP_LOGI(TAG, "DP_TYPE_BOOL");
+        ESP_LOGI(TAG, "DP_TYPE_BOOL: %d",value[0] );
+        water_purifier_packet_data_bool(dpid, value[0]);
         break;
     case DP_TYPE_VALUE:
         ESP_LOGI(TAG, "DP_TYPE_VALUE");
+        water_purifier_packet_data_value(dpid, value);
         break;
     case DP_TYPE_STRING:
         ESP_LOGI(TAG, "DP_TYPE_STRING");
         break;
     case DP_TYPE_ENUM:
+        water_purifier_packet_data_enum(dpid, value[0]);
         ESP_LOGI(TAG, "DP_TYPE_ENUM");
         break;
     case DP_TYPE_BITMAP:

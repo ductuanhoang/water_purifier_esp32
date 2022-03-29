@@ -29,6 +29,7 @@
 /****************************************************************************/
 /***         Exported global functions                                     ***/
 /****************************************************************************/
-
-
+void water_purifier_packet_data_bool(unsigned char dpid, unsigned short value);
+void water_purifier_packet_data_enum(unsigned char dpid, unsigned short value);
+void water_purifier_packet_data_value(unsigned char dpid, const unsigned char value[]);
 #endif /* WATERPURIFIER_PACKET_MESSAGE_H_ */

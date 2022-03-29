@@ -161,8 +161,8 @@ void TuyaUart::wifi_uart_write_frame(unsigned char fr_type, unsigned char fr_ver
     wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len);
 }
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void TuyaUart::wifi_uart_write_frame_heartbeat(void)
 {
@@ -182,8 +182,8 @@ void TuyaUart::wifi_uart_write_frame_heartbeat(void)
     wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len - 1);
 }
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void TuyaUart::wifi_uart_write_frame_QueryProductInfo(void)
 {
@@ -200,11 +200,11 @@ void TuyaUart::wifi_uart_write_frame_QueryProductInfo(void)
 
     len += PROTOCOL_HEAD;
     wifi_uart_tx_buf[len - 1] = check_sum;
-    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len - 1);
+    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len);
 }
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void TuyaUart::wifi_uart_write_frame_QueryWorkingMode(void)
 {
@@ -221,7 +221,7 @@ void TuyaUart::wifi_uart_write_frame_QueryWorkingMode(void)
 
     len += PROTOCOL_HEAD;
     wifi_uart_tx_buf[len - 1] = check_sum;
-    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len - 1);
+    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len);
 }
 
 void TuyaUart::wifi_uart_write_frame_ReportWiFiStatus(void)
@@ -229,6 +229,23 @@ void TuyaUart::wifi_uart_write_frame_ReportWiFiStatus(void)
     // TODO
 }
 
+void TuyaUart::wifi_uart_write_frame_QueryDpStatus(void)
+{
+    // 55 aa 00 08 00 00 07
+    unsigned short len = 0;
+    unsigned char check_sum = 0x07;
+
+    wifi_uart_tx_buf[HEAD_FIRST] = 0x55;
+    wifi_uart_tx_buf[HEAD_SECOND] = 0xaa;
+    wifi_uart_tx_buf[PROTOCOL_VERSION] = 0x00;
+    wifi_uart_tx_buf[FRAME_TYPE] = 0x08;
+    wifi_uart_tx_buf[LENGTH_HIGH] = 0x00 >> 8;
+    wifi_uart_tx_buf[LENGTH_LOW] = 0x00 & 0xff;
+
+    len += PROTOCOL_HEAD;
+    wifi_uart_tx_buf[len - 1] = check_sum;
+    wifi_uart_write_data((unsigned char *)wifi_uart_tx_buf, len);
+}
 unsigned short TuyaUart::set_wifi_uart_byte(unsigned short dest, unsigned char byte)
 {
     unsigned char *obj = (unsigned char *)wifi_uart_tx_buf + DATA_START + dest;
