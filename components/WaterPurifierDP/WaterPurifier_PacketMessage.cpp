@@ -75,11 +75,24 @@ void water_purifier_packet_data_enum(unsigned char dpid, unsigned short value)
     ESP_LOGI(TAG, "dpid = %d --- value = %d", dpid, value);
     char buffer_report[20];
     sprintf(buffer_report, "{\"%d\": %d}", dpid, value);
+    ESP_LOGI(TAG, "send data = %s", buffer_report);
 }
 
 void water_purifier_packet_data_value(unsigned char dpid, const unsigned char value[])
 {
-    ESP_LOGI(TAG, "dpid = %d --- value = %d", dpid, value[0]);
+    uint32_t _value = 0;
+    _value = (value[0] << 24) + (value[1] << 16) + (value[2] << 8) + value[3];
+    char buffer_report[20];
+    sprintf(buffer_report, "{\"%d\": %d}", dpid, _value);
+    ESP_LOGI(TAG, "send data = %s", buffer_report);
+    // ESP_LOGI(TAG, "dpid = %d --- value = %d", dpid, value[0]);
+    // ESP_LOGI(TAG, "dpid = %d --- value = %d", dpid, value[1]);
+    // ESP_LOGI(TAG, "dpid = %d --- value = %d", dpid, value[2]);
+    // ESP_LOGI(TAG, "dpid = %d --- value = %d", dpid, value[3]);
+    // send_len = tuya_uart.set_wifi_uart_byte(send_len, value >> 24);
+    // send_len = tuya_uart.set_wifi_uart_byte(send_len, value >> 16);
+    // send_len = tuya_uart.set_wifi_uart_byte(send_len, value >> 8);
+    // send_len = tuya_uart.set_wifi_uart_byte(send_len, value & 0xff);
 }
 /***********************************************************************************************************************
  * static functions

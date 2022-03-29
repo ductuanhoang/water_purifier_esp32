@@ -1,4 +1,4 @@
-# Install script for directory: D:/1.Work/1.ESP32/esp-idf/components/esp_system
+# Install script for directory: D:/2.Work/esp32/esp-idf/components/esp_system
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,7 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("D:/1.Work/40.UKG/water_purifier_esp32/build/esp-idf/esp_system/port/cmake_install.cmake")
+  include("D:/2.Work/2.Tuanhd2/water_purifier_esp32/build/esp-idf/esp_system/port/cmake_install.cmake")
 
 endif()
 

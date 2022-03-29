@@ -45,6 +45,11 @@ static QueueHandle_t UART_QUEUE_NUM;
 #define CONFIG_UART_FIFO
 static void UserUart_2_Init(void);
 static int UserUart_ReadData(unsigned char *buff);
+
+uint8_t uart_buffer[BUF_SIZE];
+uint16_t uart_buffer_length = 0;
+bool event_new_message = false;
+
 #ifdef CONFIG_UART_FIFO
 static void uart_event_task(void *pvParameters)
 {
@@ -69,6 +74,9 @@ static void uart_event_task(void *pvParameters)
                 ESP_LOGI(TAG, "[UART DATA]: %d", event.size);
                 uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
                 ESP_LOGI(TAG, "[DATA EVT]:");
+                memcpy(uart_buffer + uart_buffer_length, dtmp, event.size);
+                uart_buffer_length += event.size;
+                event_new_message = true;
                 // uart_write_bytes(EX_UART_NUM, (const char *)dtmp, event.size);
                 // uart_read_callback((unsigned char *)dtmp, (unsigned short)event.size);
                 break;
@@ -137,6 +145,44 @@ static void uart_event_task(void *pvParameters)
     dtmp = NULL;
     vTaskDelete(NULL);
 }
+
+static void uart_buffer_task(void *param)
+{
+    ESP_LOGI(TAG, "uart_buffer_task call");
+    uint8_t state_check_buffer = 0;
+    TickType_t start = 0;
+    for (;;)
+    {
+        if (event_new_message)
+        {
+            event_new_message = false;
+            state_check_buffer = 1;
+            printf("check here\r\n");
+        }
+
+        switch (state_check_buffer)
+        {
+        case 1:
+            start = xTaskGetTickCount();
+            state_check_buffer = 2;
+            break;
+        case 2:
+            if (pdTICKS_TO_MS((xTaskGetTickCount() - start)) > 500)
+            {
+                printf("uart message = %d\r\n", uart_buffer_length);
+                uart_read_callback((unsigned char *)uart_buffer, (unsigned short)uart_buffer_length);
+                uart_buffer_length = 0;
+                memset(uart_buffer, 0, sizeof(uart_buffer));
+                state_check_buffer = 0;
+            }
+            break;
+        default:
+            break;
+        }
+
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
 #else
 static void uart_event_task(void *pvParameters)
 {
@@ -191,7 +237,8 @@ void user_uart_init(void)
 #endif //
 
     // Create a task to handler UART event from ISR
-    xTaskCreate(uart_event_task, "uart_event_task", 4096, NULL, 3, NULL);
+    xTaskCreate(uart_event_task, "uart_event_task", 4096, NULL, 12, NULL);
+    xTaskCreate(uart_buffer_task, "uart_buffer_task", 4096, NULL, 12, NULL);
 }
 
 void uart_recieve_callback_init(uart_read_callback_t callback)

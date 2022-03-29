@@ -55,7 +55,7 @@ unsigned char TuyaDataPoint::mcu_dp_raw_update(unsigned char dpid, const unsigne
     //
     send_len = tuya_uart.set_wifi_uart_buffer(send_len, (unsigned char *)value, len);
 
-    tuya_uart.wifi_uart_write_frame(STATE_UPLOAD_CMD, MCU_TX_VER, send_len);
+    tuya_uart.wifi_uart_write_frame(0x06, 0x00, send_len);
 
     return TY_SUCCESS;
 }
@@ -105,7 +105,7 @@ unsigned char TuyaDataPoint::mcu_dp_value_update(unsigned char dpid, unsigned lo
     send_len = tuya_uart.set_wifi_uart_byte(send_len, value >> 8);
     send_len = tuya_uart.set_wifi_uart_byte(send_len, value & 0xff);
 
-    tuya_uart.wifi_uart_write_frame(STATE_UPLOAD_CMD, MCU_TX_VER, send_len);
+    tuya_uart.wifi_uart_write_frame(0x06, 0x00, send_len);
 
     return TY_SUCCESS;
 }
@@ -125,7 +125,7 @@ unsigned char TuyaDataPoint::mcu_dp_string_update(unsigned char dpid, const unsi
     //
     send_len = tuya_uart.set_wifi_uart_buffer(send_len, (unsigned char *)value, len);
 
-    tuya_uart.wifi_uart_write_frame(STATE_UPLOAD_CMD, MCU_TX_VER, send_len);
+    tuya_uart.wifi_uart_write_frame(0x06, 0x00, send_len);
 
     return TY_SUCCESS;
 }
@@ -145,7 +145,7 @@ unsigned char TuyaDataPoint::mcu_dp_enum_update(unsigned char dpid, unsigned cha
     //
     send_len = tuya_uart.set_wifi_uart_byte(send_len, value);
 
-    tuya_uart.wifi_uart_write_frame(STATE_UPLOAD_CMD, MCU_TX_VER, send_len);
+    tuya_uart.wifi_uart_write_frame(0x06, 0x00, send_len);
 
     return TY_SUCCESS;
 }
@@ -182,7 +182,7 @@ unsigned char TuyaDataPoint::mcu_dp_fault_update(unsigned char dpid, unsigned lo
         send_len = tuya_uart.set_wifi_uart_byte(send_len, value & 0xff);
     }
 
-    tuya_uart.wifi_uart_write_frame(STATE_UPLOAD_CMD, MCU_TX_VER, send_len);
+    tuya_uart.wifi_uart_write_frame(0x06, 0x00, send_len);
 
     return TY_SUCCESS;
 }

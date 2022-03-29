@@ -1,4 +1,4 @@
-# Install script for directory: D:/2.Work/esp32/esp-idf/components/tcpip_adapter
+# Install script for directory: D:/2.Work/esp32/esp-idf/components/lvgl
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
